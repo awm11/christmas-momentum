@@ -3,9 +3,9 @@ import json, urllib.request, urllib.parse, os, re, html
 API='https://commons.wikimedia.org/w/api.php'
 UA={'User-Agent':'christmas-momentum-sim/1.0 (https://github.com/awm11/christmas-momentum)'}
 TITLES=[
- 'File:Rangifer tarandus (Wroclaw zoo) - young - face.JPG',
+ 'File:Reindeer of Mongolia 01.jpg',
  'File:20070818-0001-strolling reindeer.jpg',
- 'File:Connecting road 9401 20100912 01.jpg',
+ 'File:Reindeer with big antlers at Jokkmokk Market reindeer parade.jpg',
  'File:193 Herd of Reindeers running in Southern Iceland Photo by Giles Laurent.jpg',
  'File:Young reindeer on Salen, Hammerfest, Troms og Finnmark, Norway, 2022 August.jpg',
  'File:Reindeer pulling sleigh, Russia.jpg',
