@@ -745,7 +745,7 @@ const SCEN = {
         // and only drift further apart, so they never overlap.
         const offB=38*kB+6, offA=(p.uA-p.uB)*runUp()*PX_PER_M-38*kA-6;
         return {ok:true,noEvent:true,
-          note:'❄️ '+neverMeetReason(p.uA,p.uB)+' With no collision, each sledge keeps its own momentum.',
+          note:'❄️ '+neverMeetReason(p.uA,p.uB),
           bodies:[
             {name:'Green elf + sledge', m:p.mA, u:p.uA, v:p.uA, offB:offA, offA:offA, draw:sc((c,x,y)=>drawSledge(c,x,y,fA,'#1f7a4d'),kA)},
             {name:'Red elf + sledge', m:p.mB, u:p.uB, v:p.uB, offB:offB, offA:offB, draw:sc((c,x,y)=>drawSledge(c,x,y,fB,'#c8102e'),kB)},
