@@ -162,10 +162,12 @@
     transform:translate(-50%,-50%);border:1px solid #c9d1de;border-radius:999px;background:#fff;box-shadow:0 4px 12px rgba(20,30,60,.18),0 0 0 3px var(--soft);cursor:pointer}
   .cSwap svg{width:22px;height:22px;fill:none;stroke:var(--ink);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
   .cSwap:hover{border-color:var(--red2)}
-  .cTop{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .cTop{display:flex;flex-direction:column;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .cTitleRow{display:flex;align-items:center;justify-content:space-between;gap:16px}
   .cEyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:4px}
   .cFormula{font-size:clamp(20px,2vw,28px);font-weight:650;line-height:1.15;letter-spacing:-.02em}
-  .cTopMeta{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:12px}
+  .cTopMeta{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:10px}
+  .cTopMeta .cProgress{margin-right:auto}
   .cProgress{font-size:.9rem;color:var(--muted);font-weight:600}
   .cDots{display:grid;grid-template-rows:repeat(2,auto);grid-auto-flow:column;grid-auto-columns:14px;gap:5px 9px;flex:none}
   .cDots button{width:14px;height:14px;padding:0;border:0;border-radius:50%;background:#d5dbe6;cursor:pointer}
@@ -326,13 +328,15 @@
     <section class="card qPane" id="qPane">
       <div id="cMain">
         <div class="cTop">
-          <div>
-            <div class="cEyebrow">Momentum calculations</div>
-            <div class="cFormula">momentum = mass × velocity</div>
+          <div class="cTitleRow">
+            <div>
+              <div class="cEyebrow">Momentum calculations</div>
+              <div class="cFormula">momentum = mass × velocity</div>
+            </div>
+            <span class="cDots" id="cDots" aria-hidden="true"></span>
           </div>
           <div class="cTopMeta">
             <span class="cProgress" id="cProgress"></span>
-            <span class="cDots" id="cDots" aria-hidden="true"></span>
             <button type="button" class="cRestart" id="cRestart">Start again</button>
             <button type="button" class="cRestart cFs" id="cFsBtn" aria-pressed="false">⤢ Full screen</button>
           </div>
@@ -1425,7 +1429,7 @@ function renderDots(){
     :`<span class="${j===S.idx?'is-active':''} ${S.correct[j]?'is-done':''}" title="Question ${qLabel(j)}"></span>`).join('');
 }
 function renderTopMeta(){
-  $('cProgress').textContent=`Question ${qLabel(S.idx)} · ${S.idx+1} of ${N_Q}`;
+  $('cProgress').textContent=`Question ${qLabel(S.idx)}`;
   const any=S.attempted.some(Boolean)||S.answers.some(Boolean)||S.idx>0;
   $('cRestart').style.display=any?'':'none';
 }
