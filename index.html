@@ -118,6 +118,12 @@
   .rt th.obj,.rt td.obj{text-align:left}
   .rt .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;vertical-align:-1px}
   .rt tr.total td{font-weight:800;border-top:2px solid var(--ink)}
+  /* full screen: table text 1.5× */
+  #simCard:fullscreen .rt,#simCard.pseudo-fs .rt{font-size:1.65rem}
+  #simCard:fullscreen .rt th,#simCard.pseudo-fs .rt th{font-size:1.35rem}
+  #simCard:fullscreen .rt th .u,#simCard.pseudo-fs .rt th .u{font-size:1.2rem}
+  #simCard:fullscreen .rt th.grp,#simCard.pseudo-fs .rt th.grp{font-size:1.42rem}
+  #simCard:fullscreen .rt .sw,#simCard.pseudo-fs .rt .sw{width:18px;height:18px;border-radius:4px;margin-right:10px;vertical-align:-2px}
   .rt tbody tr:not(.total):hover td{filter:brightness(.97)}
   .eqn{margin-top:10px;padding:10px 12px;background:var(--soft);border-radius:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1rem;line-height:1.6;overflow-x:auto;white-space:nowrap}
   .note{font-size:.95rem;color:var(--muted);margin-top:8px}
