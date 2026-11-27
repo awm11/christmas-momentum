@@ -39,7 +39,8 @@
   .ctl.flash{animation:ctlFlash .9s ease-out}
   @keyframes ctlFlash{0%,40%{background:#ffe9a8;box-shadow:0 0 0 2px #e8b23a}20%,60%{background:#fff6d6;box-shadow:0 0 0 2px #f3d27a}100%{background:transparent;box-shadow:0 0 0 2px transparent}}
   @media(prefers-reduced-motion:reduce){.ctl.flash{animation-duration:.01s}}
-  .ctl label output{font-variant-numeric:tabular-nums;color:var(--red);font-weight:700}
+  .ctl label output{font-variant-numeric:tabular-nums;color:var(--red);font-weight:700;text-align:right;flex:none}
+  .calc .ctl label output{min-width:0!important;text-align:left}
   /* Custom sliders: a pale track filled with the slider's colour (--c) up to the handle (--p).
      Styled by hand so a light colour (e.g. the sack's) doesn't make the browser darken the track. */
   input[type=range]{--c:var(--red);--p:50%;width:100%;height:22px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
@@ -56,7 +57,7 @@
   .runrow{display:flex;gap:8px}.runrow .btn{flex:1;padding:10px 8px;white-space:nowrap}
   .sideLabel{font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:5px}
   .presetList{display:flex;flex-direction:column;gap:6px}
-  .presetList .btn.preset{text-align:left;width:100%}
+  .presetList .btn.preset{text-align:left;width:auto;align-self:flex-start}
   .checks{display:flex;flex-direction:column;gap:8px}
   .checks .chk{margin:0;align-items:flex-start;line-height:1.3}
   .checks .chk input{margin-top:2px;flex:none}
@@ -95,14 +96,49 @@
   #simCard:fullscreen,#simCard.pseudo-fs{padding:20px 26px;background:#fff}
   #calc:fullscreen,#calc.pseudo-fs{padding:16px 20px;background:var(--soft)}
   #simCard:fullscreen .stage,#simCard.pseudo-fs .stage{grid-template-columns:minmax(0,1fr) 240px}
+  /* questions in full screen: both sides fill the screen height exactly, no scrolling */
+  #calc.on:fullscreen,#calc.on.pseudo-fs{grid-template-rows:minmax(0,1fr);align-items:stretch;overflow:hidden}
+  #calc:fullscreen .simPane,#calc.pseudo-fs .simPane{min-height:0;overflow:hidden}
+  #calc:fullscreen .qPane,#calc.pseudo-fs .qPane{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  #calc:fullscreen #cMain,#calc.pseudo-fs #cMain{flex:1;min-height:0;display:flex;flex-direction:column}
+  #calc:fullscreen .cWorkpad,#calc.pseudo-fs .cWorkpad{flex:1 1 auto;height:auto;min-height:140px}
+  #calc:fullscreen #cv,#calc.pseudo-fs #cv{justify-self:center}
+  @media(max-height:860px){
+    #calc:fullscreen .cKey,#calc.pseudo-fs .cKey,#calc:fullscreen .cUKey,#calc.pseudo-fs .cUKey{min-height:32px;font-size:.98rem}
+    #calc:fullscreen .cTypeInput,#calc.pseudo-fs .cTypeInput{height:44px;font-size:1.3rem}
+    #calc:fullscreen .cUnitBox,#calc.pseudo-fs .cUnitBox{min-height:44px}
+    #calc:fullscreen .cTop,#calc.pseudo-fs .cTop{gap:6px;padding-bottom:8px}
+  }
+  @media(max-height:800px){
+    #calc.on:fullscreen,#calc.on.pseudo-fs{padding:10px 14px}
+    #calc:fullscreen .card,#calc.pseudo-fs .card,#calc:fullscreen .cAnswer,#calc.pseudo-fs .cAnswer{padding:12px}
+    #calc:fullscreen .cAnswer,#calc.pseudo-fs .cAnswer{margin-top:10px}
+    #calc:fullscreen .cAnswerLabel,#calc.pseudo-fs .cAnswerLabel{display:none}
+    #calc:fullscreen .cColLabel,#calc.pseudo-fs .cColLabel{font-size:12px;margin-bottom:2px}
+    #calc:fullscreen .cKey,#calc.pseudo-fs .cKey,#calc:fullscreen .cUKey,#calc.pseudo-fs .cUKey{min-height:28px}
+    #calc:fullscreen .cKeypad,#calc.pseudo-fs .cKeypad,#calc:fullscreen .cUnitKeys,#calc.pseudo-fs .cUnitKeys{gap:4px}
+    #calc:fullscreen .cTypeInput,#calc.pseudo-fs .cTypeInput{height:40px}
+    #calc:fullscreen .cUnitBox,#calc.pseudo-fs .cUnitBox{min-height:40px}
+    #calc:fullscreen .cAnswer .cActions,#calc.pseudo-fs .cAnswer .cActions{margin-top:8px}
+    #calc:fullscreen .cBtn,#calc.pseudo-fs .cBtn{padding-top:8px;padding-bottom:8px}
+    #calc:fullscreen .cAnswer .cFeedback,#calc.pseudo-fs .cAnswer .cFeedback{margin-top:8px;padding:7px 11px}
+    #calc:fullscreen #simCard .lockNote,#calc.pseudo-fs #simCard .lockNote{display:none}
+    #calc:fullscreen .ctl label,#calc.pseudo-fs .ctl label{font-size:.72rem}
+    #calc:fullscreen .ctl label output,#calc.pseudo-fs .ctl label output{font-size:1.05rem}
+    #calc:fullscreen .cNote,#calc.pseudo-fs .cNote{display:none}
+  }
   button{font:inherit;color:var(--ink)}
   input,select,textarea{color:var(--ink);background-color:#fff}
   .btn{border:0;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:.95rem}
   .btn.run{background:var(--green);color:#fff}
   .btn.run:hover{background:var(--green2)}
   .btn.reset{background:#e9edf4;color:var(--ink)}
-  .btn.preset{background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:600;padding:8px 12px;font-size:.86rem}
-  .btn.preset:hover{border-color:var(--red2)}
+  .btn.preset{display:inline-flex;align-items:center;gap:7px;background:#fff6f7;border:1px solid #f2c7cd;color:#8e1526;font-weight:650;padding:7px 13px 7px 10px;font-size:.86rem;border-radius:999px;box-shadow:0 1px 0 rgba(142,21,38,.08);transition:background .15s,color .15s,border-color .15s,transform .15s}
+  .btn.preset::before{content:'';flex:none;width:16px;height:16px;border-radius:50%;background:#c8102e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M6.3 4.6v6.8L11.6 8z' fill='white'/%3E%3C/svg%3E") center/16px no-repeat}
+  .btn.preset:hover{background:#c8102e;border-color:#c8102e;color:#fff;transform:translateY(-1px)}
+  .btn.preset:hover::before{background-color:#fff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M6.3 4.6v6.8L11.6 8z' fill='%23c8102e'/%3E%3C/svg%3E")}
+  .btn.preset:active{transform:translateY(0)}
+  .btn.preset:focus-visible{outline:3px solid #f6b9c0;outline-offset:2px}
   .chk{display:flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted);margin-left:auto}
   .warn{margin-top:10px;padding:10px 12px;border-radius:10px;background:#fff4e0;border:1px solid #f1d39a;color:#6b4a00;font-size:.92rem;display:none}
   table{width:100%;border-collapse:collapse;margin-top:14px;font-size:1.08rem;font-variant-numeric:tabular-nums}
@@ -112,7 +148,10 @@
   thead th.after{color:var(--green)}
   tr.total td{font-weight:800;border-top:2px solid var(--ink)}
   /* values table: grouped Before / After columns, units in the headings, colour swatches */
-  .rt{font-size:1.1rem}
+  .rt{font-size:1.1rem;table-layout:fixed;min-width:600px}
+  .rt col.c-obj{width:25%}.rt col.c-m{width:11%}.rt col.c-n{width:16%}
+  .rt td,.rt th{overflow:hidden;text-overflow:ellipsis}
+  .rt td:not(.obj){white-space:nowrap}
   #readout{overflow-x:auto;-webkit-overflow-scrolling:touch}
   @media(max-width:600px){.rt{font-size:.95rem}.rt td,.rt th{padding:8px 7px}.rt th{font-size:.8rem}}
   .rt th{font-size:.9rem;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:700;vertical-align:bottom;background:#fff;border-bottom:1px solid var(--line)}
@@ -128,6 +167,9 @@
   .rt .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;vertical-align:-1px}
   .rt tr.total td{font-weight:800;border-top:2px solid var(--ink)}
   #simCard:fullscreen .ctl label,#simCard.pseudo-fs .ctl label{font-size:1.15rem;margin-bottom:6px}
+  #simCard:fullscreen .presetList,#simCard.pseudo-fs .presetList{flex-direction:row;flex-wrap:wrap;gap:5px}
+  #simCard:fullscreen .btn.preset,#simCard.pseudo-fs .btn.preset{font-size:.74rem;padding:5px 10px 5px 7px;gap:5px}
+  #simCard:fullscreen .btn.preset::before,#simCard.pseudo-fs .btn.preset::before{width:13px;height:13px;background-size:13px}
   /* full screen: table text 1.5× */
   #simCard:fullscreen .rt,#simCard.pseudo-fs .rt{font-size:1.65rem}
   #simCard:fullscreen .rt th,#simCard.pseudo-fs .rt th{font-size:1.35rem}
@@ -855,6 +897,9 @@ function buildControls(){
       <input type="range" id="s_${sl.id}" min="${sl.min}" max="${sl.max}" step="${sl.step}" value="${sl.val}">`;
     c.appendChild(d);
     if(sl.col){d.querySelector('input').style.setProperty('--c',sl.col);d.querySelector('output').style.color=sl.textCol||sl.col;} // e.g. green for the green elf
+    // reserve room for the widest value this slider can show, so its width never changes
+    const dec=(String(sl.step).split('.')[1]||'').length, cands=[sl.min,sl.max,sl.min+sl.step,sl.max-sl.step].map(v=>(v<0?'-':'')+Math.abs(v).toFixed(dec)+' '+sl.unit);
+    d.querySelector('output').style.minWidth=Math.max(...cands.map(t=>t.length))*0.62+'em';
     d.querySelector('input').oninput=e=>{cancelPresetAnim();P[sl.id]=+e.target.value;changed();};
   });
   const pr=$('presets');pr.innerHTML='';
@@ -929,7 +974,7 @@ function renderReadout(){
     rows+=`<tr><td class="obj"><span class="sw" style="background:${SW[b.name]||'#888'}"></span>${b.name}</td><td>${b.m}</td>
       <td class="bf gs">${sgn(b.u)}</td><td class="bf">${sgn(b.m*b.u)}</td>
       <td class="af gs">${hide?q:sgn(b.v)}</td><td class="af">${hide?q:sgn(b.m*b.v)}</td></tr>`;});
-  r.innerHTML=`<table class="rt"><thead>
+  r.innerHTML=`<table class="rt"><colgroup><col class="c-obj"><col class="c-m"><col class="c-n"><col class="c-n"><col class="c-n"><col class="c-n"></colgroup><thead>
     <tr><th rowspan="2" class="obj">Object</th><th rowspan="2">Mass<span class="u">kg</span></th>
       <th colspan="2" class="grp bf gs">Before</th><th colspan="2" class="grp af gs">After</th></tr>
     <tr><th class="bf gs">Velocity<span class="u">m/s</span></th><th class="bf">Momentum<span class="u">kg m/s</span></th>
@@ -938,6 +983,7 @@ function renderReadout(){
       <td class="af gs"></td><td class="af">${hide?q:sgn(pa)}</td></tr></tbody></table>
     <div class="eqn">${hide?'Total momentum before = total momentum after  ⇒  v = ?':nb(res.eqn)}</div>
     <div class="note">${hide?`Predict the answer, then press ${s.runLabel||'Run'}.`:nb(res.afterNote)}</div>`;
+  fitFs();
 }
 
 /* ---------------- drawing ---------------- */
@@ -962,8 +1008,9 @@ function drawSky(camPx){
   ctx.fillStyle='#3a5a8c';
   for(let i=-1;i<4;i++){const x=i*400+off;ctx.beginPath();ctx.moveTo(x-40,GROUND);ctx.quadraticCurveTo(x+160,GROUND-120,x+360,GROUND);ctx.fill();}
   // trees
-  const toff=((-camPx*0.5)%150+150)%150;
-  for(let i=-1;i<8;i++){const x=i*150+toff, h=50+((i*37+Math.floor(camPx*0.5/150)*13)%3)*12;
+  // trees every 150 px, fixed in the world (parallax ×0.5); tree 3 sits a little further left so it clears the sack
+  const c=camPx*0.5, k0=Math.floor(c/150)-1;
+  for(let k=k0;k<k0+9;k++){const x=k*150-c+(k===3?-62:0), h=50+(((k*37)%3+3)%3)*12;
     ctx.fillStyle='#4a2f1b';ctx.fillRect(x-3.5,GROUND-18,7,18); // trunk
     ctx.fillStyle='#16452f';ctx.beginPath();ctx.moveTo(x,GROUND-h);ctx.lineTo(x-20,GROUND-16);ctx.lineTo(x+20,GROUND-16);ctx.fill();
     ctx.fillStyle='#e9f1ff';ctx.beginPath();ctx.moveTo(x,GROUND-h);ctx.lineTo(x-7,GROUND-h+16);ctx.lineTo(x+7,GROUND-h+16);ctx.fill();}
@@ -1218,6 +1265,26 @@ const CALC_Q=[
       if(near(v,200)) return 'That’s the total momentum. Divide by the total mass to get the speed.';
       if(near(v,3.33,0.01)||near(v,5)) return 'After they stick, divide by the total mass of both sledges (100 kg).';
       return null; } },
+  { scene:'throw', set:{M:300,m:20,u:4,vp:-11}, keepHidden:{Present:11},
+    text:'Santa and his sleigh (mass 300 kg) carry a 20 kg present, gliding forwards at 4 m/s. Santa throws the present backwards, and the sleigh speeds up to 5 m/s. Calculate the momentum of Santa and the sleigh just after the throw.',
+    answer:1500, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
+    help:[pmv,[M_('momentum'),T_(' = '),K_('300'),T_(' × '),V_('5')]],
+    diagnose(v){
+      if(near(v,1600)) return 'After the throw the present has gone, so use 300 kg, not 320 kg.';
+      if(near(v,1280)) return 'That’s the total momentum before the throw. Use the sleigh’s new speed, 5 m/s.';
+      if(near(v,1200)) return 'Use the sleigh’s speed after the throw, 5 m/s.';
+      if(near(v,305)) return 'Multiply the mass by the velocity, don’t add them.';
+      return null; } },
+  { scene:'throw', set:{M:300,m:20,u:4,vp:-11},
+    text:'Use conservation of momentum to calculate the speed of the present just after Santa throws it backwards.',
+    answer:11, unit:'m/s', quantity:'speed', tolerance:0.01,
+    help:[pbma,[M_('(300 + 20) × 4'),T_(' = '),M_('1500'),T_(' + '),K_('20'),T_(' × '),V_('velocity')]],
+    diagnose(v){
+      if(near(v,220)) return 'That’s the size of the present’s momentum. Divide by its mass to get its speed.';
+      if(near(v,16)) return 'Before the throw the present was moving with the sleigh: the total mass was 320 kg, so the total momentum was 1280 kg m/s.';
+      if(near(v,75)) return 'Momentum before = momentum after: the present’s momentum is 1280 − 1500 = −220 kg m/s.';
+      if(near(v,139)) return 'The present moves backwards, so its momentum is negative: 1280 − 1500 = −220 kg m/s.';
+      return null; } },
 ];
 CALC_Q.forEach(q=>{q.text=nb(q.text);}); // units never split from their values
 const N_Q=CALC_Q.length;
@@ -1237,11 +1304,13 @@ const REWARD_FACTS=[
   'Christmas crackers were invented in London by the sweet-maker Tom Smith in the 1840s.',
   'Christmas trees became popular in Britain after an 1848 picture showed Queen Victoria and Prince Albert’s family around a decorated tree.',
   'The Sámi people of northern Scandinavia have herded reindeer for centuries, and many still do today.',
+  'Reindeer are strong swimmers and can cross wide rivers and lakes on their migrations.',
+  'Most of the names of Santa’s reindeer come from the 1823 poem “A Visit from St. Nicholas”.',
 ];
 function shuffle(items){const c=[...items];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}return c;}
 
 /* ---------------- session (saved in the browser, like batQuizStorage) ---------------- */
-const STORE_KEY='awm-xmas-momentum-calc-v1';
+const STORE_KEY='awm-xmas-momentum-calc-v2'; // v2: 12 questions
 const EXPIRY_MS=60*60*1000; // 1 hour since last change, so the next person on a shared computer starts fresh
 const arr=v=>Array.from({length:N_Q},()=>typeof v==='function'?v():v);
 function freshSession(){
@@ -1751,11 +1820,22 @@ function setMode(m){
 /* ---------------- full screen ----------------
    Real full screen where the browser allows it; otherwise a fixed overlay that fills the window. */
 function fsActive(el){return document.fullscreenElement===el||el.classList.contains('pseudo-fs');}
+/* Questions in full screen never need scrolling: the working-out pad stretches to fill the height (CSS),
+   and if the sim side is taller than the screen the canvas shrinks (keeping its shape) by the overflow. */
+function fitFs(){
+  const calc=$('calc'),pane=$('simPane');
+  if(!calc.classList.contains('on')||!fsActive(calc)){if(cv.style.width) cv.style.width='';return;}
+  cv.style.width='';
+  const over=pane.scrollHeight-pane.clientHeight;
+  if(over>0) cv.style.width=Math.max(300,(cv.clientHeight-over-1)*W/H)+'px';
+}
+addEventListener('resize',()=>requestAnimationFrame(fitFs));
+if(window.ResizeObserver) new ResizeObserver(()=>requestAnimationFrame(fitFs)).observe($('cForm'));
 function updateFsButtons(){
   [['simCard','fsBtn'],['calc','cFsBtn']].forEach(([id,b])=>{
     const on=fsActive($(id));$(b).textContent=on?'✕ Exit full screen':'⤢ Full screen';$(b).setAttribute('aria-pressed',on);
   });
-  requestAnimationFrame(()=>{try{resizeWork();positionSwap();}catch(_){}});
+  requestAnimationFrame(()=>{fitFs();try{resizeWork();positionSwap();}catch(_){}});
 }
 function toggleFs(el){
   if(fsActive(el)){
