@@ -1330,13 +1330,13 @@ const arr=v=>Array.from({length:N_Q},()=>typeof v==='function'?v():v);
 function freshSession(){
   return {idx:0,answers:arr(''),units:arr(''),checked:arr(false),correct:arr(false),solved:arr(false),attempted:arr(false),
     wrongAttempts:arr(0),helpShown:arr(false),recognised:arr(''),lastWrong:arr(''),lastChecked:arr(null),drawings:arr(()=>[]),ink:arr(()=>[]),
-    swapped:false,mode:'write',seenRewards:[],reward:null,facts:shuffle(REWARD_FACTS).slice(0,N_Q),workingSize:null};
+    swapped:false,mode:'write',seenRewards:[],reward:null,facts:shuffle(REWARD_FACTS).slice(0,N_Q),photos:shuffle([...Array(12).keys()]),workingSize:null};
 }
 const SIMPLE_ARRAYS=['answers','units','checked','correct','solved','attempted','wrongAttempts','helpShown','recognised','lastWrong','lastChecked'];
 const round=(v,p)=>{const f=10**p;return Math.round(v*f)/f;};
 function saveSessionNow(){
   try{
-    const d={savedAt:Date.now(),idx:S.idx,swapped:S.swapped,mode:S.mode,seenRewards:S.seenRewards,facts:S.facts,
+    const d={savedAt:Date.now(),idx:S.idx,swapped:S.swapped,mode:S.mode,seenRewards:S.seenRewards,facts:S.facts,photos:S.photos,
       drawings:S.drawings.map(ss=>ss.map(s=>({m:s.mode==='erase'?'e':'d',p:s.points.map(p=>[round(p.x,4),round(p.y,4)])}))),
       ink:S.ink.map(ss=>ss.map(s=>({k:s.pointerType||'',p:s.points.map(p=>[round(p.x,1),round(p.y,1),Math.round(p.t||0)])})))};
     SIMPLE_ARRAYS.forEach(k=>d[k]=S[k]);
@@ -1355,6 +1355,7 @@ function loadSavedSession(){
       drawings:d.drawings.map(ss=>(ss||[]).map(s=>({mode:s.m==='e'?'erase':'draw',points:s.p.map(([x,y])=>({x,y}))}))),
       ink:d.ink.map(ss=>(ss||[]).map(s=>({pointerType:s.k||undefined,startTime:0,points:s.p.map(([x,y,t])=>({x,y,t}))})))};
     if(Array.isArray(d.facts)&&d.facts.length===N_Q) r.facts=d.facts;
+    if(Array.isArray(d.photos)&&d.photos.length===12&&d.photos.every(Number.isInteger)) r.photos=d.photos;
     SIMPLE_ARRAYS.forEach(k=>r[k]=[...d[k]]);
     return r;
   }catch(_){return null;}
@@ -1652,7 +1653,8 @@ function renderReward(){
   $('cRewardTitle').textContent=final?'Well done!':'Nice work!';
   $('cRewardProgress').textContent=final?`You completed all ${N_Q} questions. Score: ${score} / ${N_Q}`:`You have completed ${done} of ${N_Q} questions.`;
   $('cFact').textContent=S.facts[k]||REWARD_FACTS[k%REWARD_FACTS.length];
-  const ph=REWARD_PHOTOS[k%REWARD_PHOTOS.length],img=$('cPhotoImg');
+  // each pupil gets the photos in their own random order, chosen when their session starts (and kept on refresh)
+  const ph=REWARD_PHOTOS[(S.photos||[])[k%12]??k%REWARD_PHOTOS.length],img=$('cPhotoImg');
   $('cRewardArt').classList.remove('no-photo');
   img.onerror=()=>$('cRewardArt').classList.add('no-photo');
   img.alt=ph.cap;img.src=ph.src;
