@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23244b61%22/%3E%0A%20%20%3Cpath%20d%3D%22M13%2051%2029.5%2012%22%20fill%3D%22none%22%20stroke%3D%22%238bd7ff%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22/%3E%0A%20%20%3Cpath%20d%3D%22m29.5%2012%2019%2039%22%20fill%3D%22none%22%20stroke%3D%22%23f7eee0%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22/%3E%0A%20%20%3Cpath%20d%3D%22M21%2036h19%22%20fill%3D%22none%22%20stroke%3D%22%237ee2a8%22%20stroke-width%3D%226%22%20stroke-linecap%3D%22round%22/%3E%0A%20%20%3Cpath%20d%3D%22M45%2048c5-5%207-11%207-18%22%20fill%3D%22none%22%20stroke%3D%22%23ffc16f%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.8%22/%3E%0A%20%20%3Ccircle%20cx%3D%2252%22%20cy%3D%2227%22%20r%3D%225.5%22%20fill%3D%22%23ffb356%22%20stroke%3D%22%23244b61%22%20stroke-width%3D%222%22/%3E%0A%3C/svg%3E" />
+<title>Wave Power Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Lato:wght@400&display=swap" />
+<style>
+/* Layout: matches the other alexmoorephysics.com simulations. Header, one white card (simulation, readings and controls), then numbered explanation boxes. */
+:root{--page:#f3f5f7;--card:#fff;--panel:#fafbfc;--ink:#202020;--muted:#59636f;--line:#d9dee4;--line-strong:#c6ccd3;
+--blue:#2166d1;--blue-light:#eaf3ff;--green:#2d9b55;--green-light:#dff3e6;
+--sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:light;
+/* scene and graph colours read by the canvas code */
+--mute:#59636f;--sea:#1f6f99;--deep:#0d3f5f;--sky1:#cfe9f5;--sky2:#eef8fc;--sand:#d8bf86;--copper:#c4783a;--accent:#ff6a3d;
+--pd:#e8281e;--disp:#2166d1;--case:#2b3a44;--face:#fbf8ef;--faceInk:#1d262c}
+*{box-sizing:border-box;min-width:0}
+html,body{background:var(--page);color:var(--ink)}
+body{margin:0;font-family:var(--sans);padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:clip}
+.shell{max-width:1160px;margin:0 auto}
+.heading{margin-bottom:18px}
+h1{margin:0;font-size:clamp(28px,4vw,40px);line-height:1.1;letter-spacing:-.04em;text-wrap:balance}
+.intro{max-width:780px;margin:8px 0 0;color:var(--muted);line-height:1.5;font-size:14px;text-wrap:pretty}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 28px rgba(31,41,55,.07);overflow:hidden}
+.simgrid{display:grid;grid-template-columns:minmax(0,1fr) 290px;grid-template-rows:auto 1fr;grid-template-areas:"stage side" "graph side";gap:12px 14px;padding:12px;align-items:start}
+.stage{grid-area:stage}.graphbox{grid-area:graph}.side{grid-area:side;display:flex;flex-direction:column;gap:12px}
+#sim{display:block;width:100%;aspect-ratio:900/560;border-radius:12px;touch-action:none}
+.fig{position:relative;min-height:230px}.fig>canvas{position:absolute;inset:0;width:100%;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:12px 2px 0 12px}
+.legend i{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.box{background:var(--panel);border:1px solid #e2e6ea;border-radius:14px;padding:14px 16px}
+.reads{padding-bottom:6px}
+.meter{position:relative;width:min(100%,230px);aspect-ratio:220/156;margin:0 auto 6px}
+.meter svg{position:absolute;inset:0;width:100%;height:100%}
+.ro{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 0;border-top:1px solid #e2e6ea}
+.ro b{font-size:19px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ro span{font-size:14px;color:var(--muted)}
+.barLabel{color:var(--muted);font-size:14px;font-weight:700}
+.ctl{margin-bottom:8px}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}
+.ctl output{font-weight:700;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;height:32px;accent-color:var(--blue);margin:0}
+.hint{font-size:12px;color:var(--muted);margin-top:-4px}
+.btnRow{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.seg{border:1px solid var(--line-strong);background:#fff;color:var(--ink);border-radius:99px;padding:7px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;min-height:36px}
+#speed{gap:6px}#speed .seg{padding:7px 11px}
+.seg.on{background:var(--blue-light);border-color:var(--blue);color:var(--blue)}
+.seg.sendBtn{background:var(--blue);border-color:var(--blue);color:#fff;padding:9px 22px}
+.seg:focus-visible,.switchBtn:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.toggles{display:flex;flex-direction:column;gap:4px;margin:4px 0 12px}
+.switchBtn{display:flex;align-items:center;gap:11px;border:0;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:800;cursor:pointer;padding:4px 0;text-align:left}
+.toggle{width:54px;height:30px;border-radius:99px;padding:3px;background:var(--line-strong);transition:.25s ease;flex:none}
+.toggle.on{background:var(--blue)}.toggle.green.on{background:var(--green)}
+.knob{display:block;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:.25s ease}
+.toggle.on .knob{transform:translateX(24px)}
+.lesson{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
+.lessonBox{background:#fff;border:1px solid #dfe4e8;border-radius:14px;padding:16px 18px}
+.lessonBox h2{margin:0 0 7px;font-size:15px}
+.lessonBox p,.lessonBox li{margin:0;color:var(--muted);line-height:1.5;font-size:14px}
+.lessonBox ul{margin:0;padding-left:18px}.lessonBox li+li{margin-top:6px}
+.lessonBox b{color:var(--ink)}
+.didYouKnow{margin-top:14px;background:var(--blue-light);border:1px solid #c4dafa;border-radius:14px;padding:14px 18px;font-size:14px;line-height:1.5;color:#1d3f73}
+.didYouKnow b{color:var(--blue)}
+.didYouKnow>span{display:block}
+.quiz{margin-top:14px}
+.quiz h2{font-size:15px;margin:0 0 10px}
+details{background:#fff;border:1px solid #dfe4e8;border-radius:14px;margin-bottom:8px}
+summary{cursor:pointer;padding:12px 18px;font-size:14px;font-weight:700;min-height:44px;display:flex;align-items:center}
+summary:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+details>div{padding:0 18px 14px;color:var(--muted);font-size:14px;line-height:1.5}
+.infoRow{display:flex;align-items:stretch;gap:12px;margin-top:14px}
+.infoRow .didYouKnow{flex:1;margin-top:0;display:flex;align-items:center}
+.infoRow>.sendBtn{flex:none;border-radius:14px;padding:0 24px;font-size:15px}
+@media(max-width:560px){.infoRow{flex-direction:column}.infoRow>.sendBtn{min-height:46px}}
+.quizBox{margin-top:12px;background:#fff;border:1px solid #dfe4e8;border-radius:14px;padding:16px 18px}
+.quizTop{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.quizCount{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#3867a8}
+.quizBox h2{margin:0 0 10px;font-size:16px;line-height:1.35}
+.quizBox textarea{width:100%;font:inherit;font-size:16px;line-height:1.45;padding:10px 12px;border:1px solid var(--line-strong);border-radius:10px;resize:vertical;color:var(--ink);background:var(--panel)}
+.quizBox textarea:focus-visible{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+.answer{margin-top:10px;background:var(--green-light);border:1px solid #b9e2c6;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.5;color:#1f5a34}
+.answer b{color:#19743b}
+.quizBtns{margin-top:12px}
+.seg:disabled{opacity:.45;cursor:default}
+.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* awm Physics branding: kept deliberately quiet so it never competes with the simulation */
+.awm-logo-link{display:inline-block;line-height:0;border-radius:12px;opacity:.85;transition:opacity .15s ease,transform .2s ease}
+.awm-logo-link:hover,.awm-logo-link:focus-visible{opacity:1;transform:rotate(8deg)}
+.awm-logo-link img{width:64px;height:64px;display:block}
+.shell.has-brand{position:relative}
+.shell.has-brand>.heading{padding-right:84px}
+.awm-logo-link.page-logo{position:absolute;top:0;right:0}
+.bottom-block{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:16px 40px;margin-top:22px;padding:6px 16px}
+.more-sims{display:inline-flex;align-items:center;gap:14px;font-weight:700;font-size:16px;color:var(--ink);text-decoration:none}
+.more-sims:hover,.more-sims:focus-visible{color:var(--blue)}
+.more-sims-icon{width:42px;height:42px;display:block;transition:transform .2s ease}
+.more-sims:hover .more-sims-icon{transform:scale(1.15) rotate(10deg)}
+.contact{color:var(--muted);font-size:16px;text-decoration:none}
+.contact:hover,.contact:focus-visible{color:var(--ink);text-decoration:underline}
+.bmc{display:inline-flex;align-items:center;gap:12px;background:#FFDD00;color:#000;border-radius:12px;padding:0 24px 0 20px;height:56px;font:400 22px Lato,var(--sans);text-decoration:none;transition:transform .15s ease,box-shadow .15s ease}
+.bmc svg{width:22px;height:30px;flex:none}
+.coffee-embed-frame{display:inline-block;width:250px;height:60px;border-radius:12px;overflow:hidden;line-height:0;transition:transform .18s ease}
+.coffee-embed-frame:hover{transform:scale(1.03)}
+.coffee-embed{width:250px;height:60px;border:0;display:block}
+.bmc:hover,.bmc:focus-visible{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
+.more-sims:focus-visible,.contact:focus-visible,.bmc:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+@media(max-width:900px){.simgrid{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"stage" "reads" "graph" "controls"}.side{display:contents}.reads{grid-area:reads}.ctlpanel{grid-area:controls}}
+@media(max-width:760px){body{padding-block:10px}.bottom-block{flex-direction:column;gap:14px}.lesson{grid-template-columns:1fr}.awm-logo-link img{width:51px;height:51px}.shell.has-brand>.heading{padding-right:67px}}
+@media(prefers-reduced-motion:reduce){.toggle,.knob{transition:none}}
+</style>
+</head>
+<body>
+<div class="shell has-brand">
+  <a class="awm-logo-link page-logo" href="/" target="_blank" rel="noopener noreferrer" aria-label="More simulations at alexmoorephysics.com" title="More simulations"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23244b61%22/%3E%0A%20%20%3Cpath%20d%3D%22M13%2051%2029.5%2012%22%20fill%3D%22none%22%20stroke%3D%22%238bd7ff%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22/%3E%0A%20%20%3Cpath%20d%3D%22m29.5%2012%2019%2039%22%20fill%3D%22none%22%20stroke%3D%22%23f7eee0%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22/%3E%0A%20%20%3Cpath%20d%3D%22M21%2036h19%22%20fill%3D%22none%22%20stroke%3D%22%237ee2a8%22%20stroke-width%3D%226%22%20stroke-linecap%3D%22round%22/%3E%0A%20%20%3Cpath%20d%3D%22M45%2048c5-5%207-11%207-18%22%20fill%3D%22none%22%20stroke%3D%22%23ffc16f%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.8%22/%3E%0A%20%20%3Ccircle%20cx%3D%2252%22%20cy%3D%2227%22%20r%3D%225.5%22%20fill%3D%22%23ffb356%22%20stroke%3D%22%23244b61%22%20stroke-width%3D%222%22/%3E%0A%3C/svg%3E" alt="" /></a>
+  <header class="heading">
+    <h1>Wave power generator</h1>
+    <p class="intro">Waves lift and drop a floating ball. A steel cable drags a magnet in and out of a coil on the sea floor, and the changing magnetic field induces an alternating potential difference that is sent to shore.</p>
+  </header>
+
+  <section class="card">
+    <div class="simgrid">
+      <div class="stage">
+        <canvas id="sim" aria-label="Animated cross-section: a floating ball on waves pulls a magnet up and down inside a coil on a concrete block on the sea floor; a cable carries current to a bulb on shore."></canvas>
+      </div>
+      <div class="graphbox">
+        <div class="fig"><canvas id="graph" aria-label="Graphs of ball height and induced p.d. against time"></canvas></div>
+        <div class="legend"><span><i style="background:var(--disp)"></i>Height of ball above calm sea level</span><span><i style="background:var(--pd)"></i>Induced p.d. across the coil</span></div>
+      </div>
+      <div class="side">
+        <div class="box reads" aria-label="Meter readings">
+          <div class="meter" role="img" aria-label="Centre-zero voltmeter showing the induced p.d.">
+            <svg viewBox="0 0 220 156">
+              <rect x="2" y="2" width="216" height="152" rx="14" fill="var(--case)" stroke="var(--line)" stroke-width="1.5"/>
+              <rect x="10" y="10" width="200" height="124" rx="8" fill="var(--face)" stroke="rgba(0,0,0,.15)"/>
+              <path d="M30.3 78 A92 92 0 0 1 189.7 78" fill="none" stroke="var(--faceInk)" stroke-width="1.5"/>
+              <g id="scale"></g>
+              <text x="110" y="104" font-size="18" font-weight="700" text-anchor="middle" fill="var(--faceInk)" font-family="Inter,sans-serif">V</text>
+              <g id="needle"><line x1="110" y1="132" x2="110" y2="36" stroke="var(--pd)" stroke-width="2.5" stroke-linecap="round"/></g>
+              <circle cx="110" cy="124" r="7" fill="var(--faceInk)"/><circle cx="110" cy="124" r="2.5" fill="var(--face)"/>
+              <text id="rangeT" x="110" y="148" font-size="11" text-anchor="middle" fill="#c9d6dd">Range ±5 V</text>
+            </svg>
+          </div>
+          <div class="ro"><b id="vNow">0.0 V</b><span>Induced p.d. now</span></div>
+          <div class="ro"><b id="vPeak">0.0 V</b><span>Peak p.d.</span></div>
+          <div class="ro"><b id="vSpeed">0.00 m/s</b><span>Magnet speed</span></div>
+        </div>
+        <div class="box ctlpanel" aria-label="Controls">
+          <div class="ctl"><label for="amp">Wave height (amplitude) <output id="ampO">1.0 m</output></label><input id="amp" type="range" min="0" max="2" step="0.1" value="1"></div>
+          <div class="ctl"><label for="per">Wave period <output id="perO">6 s</output></label><input id="per" type="range" min="3" max="12" step="0.5" value="6"></div>
+          <div class="ctl"><label for="turns">Turns on the coil <output id="turnsO">200</output></label><input id="turns" type="range" min="50" max="500" step="10" value="200"></div>
+          <div class="ctl"><label for="mag">Magnet strength <output id="magO">1.0×</output></label><input id="mag" type="range" min="0.5" max="2" step="0.1" value="1"></div>
+          <div class="toggles">
+            <button class="switchBtn" id="mixed" aria-pressed="false"><span class="toggle"><span class="knob"></span></span>Irregular (real) sea</button>
+            <button class="switchBtn" id="field" aria-pressed="true"><span class="toggle on"><span class="knob"></span></span>Show magnetic field</button>
+            <button class="switchBtn" id="labels" aria-pressed="true"><span class="toggle on"><span class="knob"></span></span>Show labels</button>
+          </div>
+          <div class="ctl"><div class="btnRow" id="speed" role="group" aria-label="Speed"><span class="barLabel">Speed</span><button class="seg" data-s="0.5">½×</button><button class="seg on" data-s="1">1×</button><button class="seg" data-s="2">2×</button><button class="seg" data-s="4">4×</button></div></div>
+          <div class="btnRow"><button class="seg sendBtn" id="play">Pause</button><button class="seg" id="clear">Clear graph</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lesson">
+    <div class="lessonBox">
+      <h2>1. The waves move the magnet</h2>
+      <p>As the ball rises and falls, the steel cable moves the magnet up and down inside the coil.</p>
+    </div>
+    <div class="lessonBox">
+      <h2>2. A p.d. is induced</h2>
+      <p>The changing magnetic field through the coil <b>induces a potential difference</b>: the <b>generator effect</b>. More turns, a stronger magnet or faster movement give a bigger p.d.</p>
+    </div>
+    <div class="lessonBox">
+      <h2>3. Alternating current</h2>
+      <p>The magnet changes direction every half wave, so the current reverses: <b>alternating current</b>. The p.d. is zero at the crest and trough, where the magnet stops.</p>
+    </div>
+  </section>
+  <div class="infoRow">
+  <div class="didYouKnow"><span><b>Did you know?</b> Wave power is renewable but <b>unreliable</b>: it produces nothing when the sea is calm.</span></div>
+    <button class="seg sendBtn" id="quizBtn" aria-expanded="false" aria-controls="quiz">Quick quiz</button>
+  </div>
+
+  <section class="quizBox" id="quiz" hidden aria-live="polite">
+    <div class="quizTop"><span class="quizCount" id="qCount">Question 1 of 6</span><button class="seg" id="qClose">Close</button></div>
+    <h2 id="qText"></h2>
+    <label class="srOnly" for="qInput">Your answer</label>
+    <textarea id="qInput" rows="3" placeholder="Type your answer here…"></textarea>
+    <div class="answer" id="qAns" hidden></div>
+    <div class="btnRow quizBtns"><button class="seg" id="qPrev">← Previous</button><button class="seg sendBtn" id="qReveal">Reveal answer</button><button class="seg" id="qNext">Next →</button></div>
+  </section>
+  <footer class="bottom-block">
+    <a class="more-sims" href="/" target="_blank" rel="noopener noreferrer"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23244b61%22/%3E%0A%20%20%3Cpath%20d%3D%22M13%2051%2029.5%2012%22%20fill%3D%22none%22%20stroke%3D%22%238bd7ff%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22/%3E%0A%20%20%3Cpath%20d%3D%22m29.5%2012%2019%2039%22%20fill%3D%22none%22%20stroke%3D%22%23f7eee0%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22/%3E%0A%20%20%3Cpath%20d%3D%22M21%2036h19%22%20fill%3D%22none%22%20stroke%3D%22%237ee2a8%22%20stroke-width%3D%226%22%20stroke-linecap%3D%22round%22/%3E%0A%20%20%3Cpath%20d%3D%22M45%2048c5-5%207-11%207-18%22%20fill%3D%22none%22%20stroke%3D%22%23ffc16f%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.8%22/%3E%0A%20%20%3Ccircle%20cx%3D%2252%22%20cy%3D%2227%22%20r%3D%225.5%22%20fill%3D%22%23ffb356%22%20stroke%3D%22%23244b61%22%20stroke-width%3D%222%22/%3E%0A%3C/svg%3E" alt="" class="more-sims-icon" /><span>See other simulations</span></a>
+    <a class="contact" href="mailto:hello@alexmoorephysics.com">hello@alexmoorephysics.com</a>
+    <a class="bmc" href="https://www.buymeacoffee.com/awmPhysics" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 32" aria-hidden="true"><path d="M3 7.5h18M4.2 4.5h15.6l1.2 3H3zM5 7.5l2 21.5h10l2-21.5" fill="none" stroke="#000" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"/><path d="M6 14h12" stroke="#000" stroke-width="1.9" stroke-linecap="round"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+  </footer>
+</div>
+<script>
+{
+const $=id=>document.getElementById(id);
+const sim=$('sim'),sc=sim.getContext('2d'),gr=$('graph'),gc=gr.getContext('2d');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const S={A:1,T:6,N:200,B:1,mixed:false,field:true,labels:true,speed:1,run:!reduce};
+const PX=20,SURF=110,FLOOR=500,BX=450,BR=26,MW=46,MH=112,REST=305,CT=392,CB=456,CR=60,FA=2.4,NS=12,PHI0=0.1,WIN=30;
+const WEED=[[95,3],[268,4],[640,2]],PEBBLES=[[48,5,3],[196,4,2.6],[208,6,3.4],[318,4,2.5],[610,5,3],[678,4,2.5]];
+const fy=x=>FLOOR-Math.min(1,Math.max(0,(Math.abs(x-450)-90)/40),Math.max(0,(700-x)/30))*Math.max(0,3+2.2*Math.sin(x/41)+1.2*Math.sin(x/17+1.3));
+const PATH=[[512,452],[540,470],[575,494],[700,494],[836,74],[852,60],[866,60]];
+let t=0,hist=[],flow=0,last=null,emf=0,vel=0,cv={};
+const segs=[];let plen=0;
+for(let i=1;i<PATH.length;i++){const[a,b]=[PATH[i-1],PATH[i]];const l=Math.hypot(b[0]-a[0],b[1]-a[1]);segs.push({a,b,l,s:plen});plen+=l}
+const ptAt=d=>{for(const g of segs){if(d<=g.s+g.l){const f=(d-g.s)/g.l;return[g.a[0]+(g.b[0]-g.a[0])*f,g.a[1]+(g.b[1]-g.a[1])*f]}}return PATH[PATH.length-1]};
+
+function wave(x,tt){ // normalised surface height (-1..1), up positive
+  const lam=60*S.T,k=2*Math.PI/lam,w=2*Math.PI/S.T,p=k*(x-BX)-w*tt;
+  let y=Math.sin(-p);
+  if(S.mixed)y=(y+0.5*Math.sin(-(2.4*k*(x-BX)-1.55*w*tt)+1.1)+0.25*Math.sin(-(0.6*k*(x-BX)-0.77*w*tt)+2))/1.35;
+  return y;
+}
+const elev=tt=>S.A*wave(BX,tt); // metres
+function flux(e){
+  const c=REST-e*PX+MH/2;let s=0;
+  for(let i=0;i<NS;i++){const y=CT+(i+.5)*(CB-CT)/NS,u=(y-c)/PX;s+=1/Math.pow(1+(u/FA)**2,1.5)}
+  return PHI0*S.B*s*S.N/NS;
+}
+function physics(tt){
+  const d=1e-3,e1=elev(tt-d),e2=elev(tt+d);
+  vel=(e2-e1)/(2*d);emf=-(flux(e2)-flux(e1))/(2*d);
+  return elev(tt);
+}
+const probe=document.createElement('i');probe.style.display='none';document.body.appendChild(probe);
+function readVars(){for(const k of['ink','mute','sea','deep','sky1','sky2','sand','copper','accent','pd','disp','line','panel']){probe.style.color=`var(--${k})`;cv[k]=getComputedStyle(probe).color}}
+function fit(c,ctx){const r=c.getBoundingClientRect(),dpr=devicePixelRatio||1;const w=Math.round(r.width*dpr),h=Math.round(r.height*dpr);if(c.width!==w||c.height!==h){c.width=w;c.height=h}return{w:r.width,h:r.height,dpr}}
+
+function arrow(ctx,x,y,ang,sz){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.beginPath();ctx.moveTo(sz,0);ctx.lineTo(-sz,-sz*.8);ctx.lineTo(-sz,sz*.8);ctx.closePath();ctx.fill();ctx.restore()}
+function label(ctx,txt,x,y,lx,ly,al){ctx.strokeStyle='#fff';ctx.lineWidth=1.4;if(lx!=null){ctx.beginPath();ctx.moveTo(x+(al==='right'?6:-6),y-5);ctx.lineTo(lx,ly);ctx.stroke()}ctx.textAlign=al||'left';ctx.lineJoin='round';ctx.strokeStyle='rgba(5,25,40,.75)';ctx.lineWidth=4;ctx.strokeText(txt,x,y);ctx.fillStyle='#fff';ctx.fillText(txt,x,y)}
+
+function drawSim(e){
+  const{w,dpr}=fit(sim,sc),s=w/900;sc.setTransform(s*dpr,0,0,s*dpr,0,0);
+  // sky
+  let g=sc.createLinearGradient(0,0,0,SURF+40);g.addColorStop(0,cv.sky1);g.addColorStop(1,cv.sky2);sc.fillStyle=g;sc.fillRect(0,0,900,560);
+  // water
+  sc.save();sc.beginPath();sc.moveTo(0,0);sc.lineTo(841,0);sc.lineTo(841,66);sc.lineTo(701,FLOOR);sc.lineTo(0,FLOOR);sc.closePath();sc.clip();
+  g=sc.createLinearGradient(0,SURF,0,FLOOR);g.addColorStop(0,cv.sea);g.addColorStop(1,cv.deep);sc.fillStyle=g;
+  sc.beginPath();sc.moveTo(0,FLOOR);for(let x=0;x<=900;x+=6)sc.lineTo(x,SURF-S.A*PX*wave(x,t));sc.lineTo(900,FLOOR);sc.closePath();sc.fill();
+  sc.strokeStyle='rgba(255,255,255,.55)';sc.lineWidth=2;sc.beginPath();for(let x=0;x<=900;x+=6){const y=SURF-S.A*PX*wave(x,t);x?sc.lineTo(x,y):sc.moveTo(x,y)}sc.stroke();sc.restore();
+  // sea floor and shore
+  sc.fillStyle=cv.sand;sc.beginPath();sc.moveTo(0,FLOOR);for(let x=0;x<=700;x+=5)sc.lineTo(x,fy(x));sc.lineTo(840,66);sc.lineTo(900,62);sc.lineTo(900,560);sc.lineTo(0,560);sc.closePath();sc.fill();
+  sc.fillStyle='rgba(0,0,0,.08)';for(let i=0;i<60;i++){const x=(i*137)%900,y=510+(i*53)%45;sc.fillRect(x,y,3,2)}
+  sc.strokeStyle='rgba(0,0,0,.07)';sc.lineWidth=2;sc.beginPath();for(let x=0;x<=690;x+=5){const y=fy(x)+22+3*Math.sin(x/53);x?sc.lineTo(x,y):sc.moveTo(x,y)}sc.stroke();
+  // a little seabed detail: seaweed, one rock, a few pebbles
+  sc.lineCap='round';for(const[x0,n]of WEED)for(let j=0;j<n;j++){const x=x0+j*7-n*3,h=34+((j*17)%3)*12,sw=Math.sin(t*1.1+x*.05+j)*7,b=fy(x);
+    sc.strokeStyle=j%2?'#3f7a4c':'#4f8f57';sc.lineWidth=3;sc.beginPath();sc.moveTo(x,b);sc.quadraticCurveTo(x-sw*.3+(j-1)*4,b-h*.55,x+sw,b-h);sc.stroke()}sc.lineCap='butt';
+  sc.fillStyle='#7b7f7a';sc.beginPath();sc.ellipse(165,fy(165)-5,19,11,0,Math.PI,0);sc.lineTo(184,fy(184));sc.lineTo(146,fy(146));sc.fill();
+  sc.fillStyle='rgba(255,255,255,.18)';sc.beginPath();sc.ellipse(159,fy(159)-10,8,3,-.3,0,7);sc.fill();
+  for(const[x,rx,ry]of PEBBLES){sc.fillStyle='#8d8b82';sc.beginPath();sc.ellipse(x,fy(x)-ry*.6,rx,ry,0,0,7);sc.fill()}
+  // field lines
+  const my=REST-e*PX+MH/2,hh=MH/2;
+  if(S.field){sc.strokeStyle=cv.accent;sc.fillStyle=cv.accent;sc.globalAlpha=.55;sc.lineWidth=1.6;
+    // nested loops: each starts at its own point on the N face and ends on the S face, so no two lines cross or touch
+    const OFF=[0,20,12.5,5];sc.lineWidth=1.4;
+    for(const k of[1,2,3])for(const sd of[-1,1]){const wd=(30+k*30)*sd,o=OFF[k]*sd;sc.beginPath();sc.moveTo(BX+o,my-hh);sc.bezierCurveTo(BX+wd*1.5,my-hh-k*34,BX+wd*1.5,my+hh+k*34,BX+o,my+hh);sc.stroke();arrow(sc,BX+o/4+wd*1.125,my,Math.PI/2,4.5)}
+    sc.globalAlpha=1}
+  // concrete block
+  sc.fillStyle='#9aa1a6';sc.fillRect(375,CB,150,FLOOR-CB);sc.fillStyle='rgba(0,0,0,.12)';for(let i=0;i<24;i++)sc.fillRect(380+(i*47)%140,CB+5+(i*13)%34,3,3);
+  sc.strokeStyle='rgba(0,0,0,.35)';sc.lineWidth=1.5;sc.strokeRect(375,CB,150,FLOOR-CB);
+  // coil back halves
+  const rings=8+Math.round((S.N-50)/30),ry=11,gapR=(CB-CT-4)/(rings-1),lwR=Math.max(1.6,Math.min(5,gapR*.8));const ringY=i=>CT+i*gapR;
+  sc.lineWidth=lwR;sc.strokeStyle=cv.copper;sc.globalAlpha=.6;for(let i=0;i<rings;i++){sc.beginPath();sc.ellipse(BX,ringY(i),CR,ry,0,Math.PI,2*Math.PI);sc.stroke()}sc.globalAlpha=1;
+  // cable from ball to magnet
+  const by=SURF-e*PX,mt=REST-e*PX;
+  sc.strokeStyle='#5d6870';sc.lineWidth=3;sc.beginPath();sc.moveTo(BX,by+BR-4);sc.lineTo(BX,mt);sc.stroke();
+  // magnet
+  sc.fillStyle='#d6333a';sc.fillRect(BX-MW/2,mt,MW,MH/2);sc.fillStyle='#2f5fd0';sc.fillRect(BX-MW/2,mt+MH/2,MW,MH/2);
+  sc.strokeStyle='rgba(0,0,0,.4)';sc.lineWidth=1.5;sc.strokeRect(BX-MW/2,mt,MW,MH);
+  sc.fillStyle='#fff';sc.font='800 24px Inter,sans-serif';sc.textAlign='center';sc.fillText('N',BX,mt+36);sc.fillText('S',BX,mt+MH-18);
+  // coil front halves
+  sc.strokeStyle=cv.copper;sc.lineWidth=lwR;for(let i=0;i<rings;i++){sc.beginPath();sc.ellipse(BX,ringY(i),CR,ry,0,0,Math.PI);sc.stroke()}
+  sc.strokeStyle='rgba(255,255,255,.35)';sc.lineWidth=Math.min(1.5,lwR*.3);for(let i=0;i<rings;i++){sc.beginPath();sc.ellipse(BX,ringY(i)-lwR*.2,CR,ry,0,.3,Math.PI-.3);sc.stroke()}
+  // current arrows on coil
+  const peak=Math.max(1,...hist.map(h=>Math.abs(h[2])));const lvl=Math.min(1,Math.abs(emf)/peak);
+  if(lvl>.08){sc.fillStyle='#ffe066';sc.globalAlpha=lvl;for(const i of[Math.floor(rings*.25),Math.floor(rings*.7)])arrow(sc,BX,ringY(i)+ry,emf>0?0:Math.PI,7);sc.globalAlpha=1}
+  // cable to shore
+  sc.strokeStyle='#2b2b2b';sc.lineWidth=4;sc.beginPath();PATH.forEach((p,i)=>i?sc.lineTo(p[0],p[1]):sc.moveTo(p[0],p[1]));sc.stroke();
+  sc.fillStyle='#ffe066';for(let d=((flow%28)+28)%28;d<plen;d+=28){const[x,y]=ptAt(d);sc.beginPath();sc.arc(x,y,2.6,0,7);sc.fill()}
+  // bulb
+  const bri=Math.min(1,(emf/6)**2);
+  if(bri>.01){g=sc.createRadialGradient(872,34,2,872,34,60);g.addColorStop(0,`rgba(255,226,110,${.9*bri})`);g.addColorStop(1,'rgba(255,226,110,0)');sc.fillStyle=g;sc.beginPath();sc.arc(872,34,60,0,7);sc.fill()}
+  sc.fillStyle='#555';sc.fillRect(866,46,12,16);
+  sc.fillStyle=`rgb(${200+55*bri},${200+40*bri},${190-60*bri})`;sc.strokeStyle='rgba(0,0,0,.45)';sc.lineWidth=1.5;sc.beginPath();sc.arc(872,32,14,0,7);sc.fill();sc.stroke();
+  // ball
+  const bc=by+7,sy=x=>SURF-S.A*PX*wave(x,t); // ball floats slightly low in the water
+  g=sc.createRadialGradient(BX-9,bc-10,4,BX,bc,BR);g.addColorStop(0,'#ffb08f');g.addColorStop(1,cv.accent);sc.fillStyle=g;sc.beginPath();sc.arc(BX,bc,BR,0,7);sc.fill();
+  sc.strokeStyle='rgba(0,0,0,.35)';sc.lineWidth=1.5;sc.stroke();
+  // water in front of the submerged part of the ball
+  sc.save();sc.beginPath();sc.arc(BX,bc,BR+1,0,7);sc.clip();
+  sc.beginPath();sc.moveTo(BX-BR-3,bc+BR+3);for(let x=BX-BR-3;x<=BX+BR+3;x+=2)sc.lineTo(x,sy(x));sc.lineTo(BX+BR+3,bc+BR+3);sc.closePath();
+  g=sc.createLinearGradient(0,by,0,bc+BR);g.addColorStop(0,cv.sea);g.addColorStop(1,cv.deep);sc.fillStyle=g;sc.globalAlpha=.5;sc.fill();sc.restore();sc.globalAlpha=1;
+  sc.strokeStyle='rgba(255,255,255,.7)';sc.lineWidth=2;sc.beginPath();for(let x=BX-BR-5;x<=BX+BR+5;x+=2){const y=sy(x);x>BX-BR-5?sc.lineTo(x,y):sc.moveTo(x,y)}sc.stroke();
+  sc.fillStyle='rgba(255,255,255,.75)';for(const d of[-1,1]){const fx=BX+d*(BR+3),ang=Math.atan((sy(fx+1)-sy(fx-1))/2);sc.beginPath();sc.ellipse(fx,sy(fx)+1,8,2.5,ang,0,7);sc.fill()}
+  // labels
+  if(S.labels&&s>=.55){sc.font=`400 ${Math.round(15/Math.min(1,s))}px Inter,sans-serif`;
+    label(sc,'floating ball',BX+70,by+42,BX+21,by+10);
+    label(sc,'steel cable',BX+70,(by+mt)/2+30,BX+3,(by+mt)/2+18);
+    label(sc,'permanent magnet',BX+80,mt+30,BX+MW/2+2,mt+22);
+    label(sc,'coil of wire',BX-90,CT+20,BX-CR+2,CT+18,'right');
+    sc.fillStyle='#22282c';sc.textAlign='center';sc.fillText('concrete block',BX,(CB+FLOOR)/2+6);
+    label(sc,'sea floor',600,535);label(sc,'cable to shore',575,478,600,492);label(sc,'bulb on shore',850,38,null,null,'right')}
+}
+
+function drawGraph(){
+  const{w,h,dpr}=fit(gr,gc);gc.setTransform(dpr,0,0,dpr,0,0);gc.clearRect(0,0,w,h);
+  const L=w<520?34:52,R=10,gap=22,ph=(h-gap-24)/2,tEnd=Math.max(t,WIN),t0=tEnd-WIN,X=tt=>L+(tt-t0)/WIN*(w-L-R);
+  const nice=v=>[1,2,5,10,20,50,100,200,500,1000].find(n=>n>=v)||v;
+  const dMax=nice(Math.max(1,S.A*1.2)),vMax=nice(Math.max(1,...hist.map(p=>Math.abs(p[2])))*1.1);
+  gc.font='12px Inter,sans-serif';
+  [[0,dMax,1,'m',cv.disp],[ph+gap,vMax,2,'V',cv.pd]].forEach(([y0,mx,idx,u,col])=>{
+    const Y=v=>y0+ph/2-v/mx*ph/2;
+    gc.strokeStyle=cv.line;gc.lineWidth=1;gc.strokeRect(L,y0,w-L-R,ph);
+    gc.beginPath();gc.moveTo(L,Y(0));gc.lineTo(w-R,Y(0));gc.stroke();
+    gc.fillStyle=cv.mute;gc.textAlign='right';gc.fillText(`+${mx} ${u}`,L-4,y0+10);gc.fillText('0',L-4,Y(0)+4);gc.fillText(`−${mx}`,L-4,y0+ph);
+    gc.strokeStyle=col;gc.lineWidth=2.2;gc.beginPath();let f=1;for(const p of hist){if(p[0]<t0)continue;const x=X(p[0]),y=Y(p[idx]);f?gc.moveTo(x,y):gc.lineTo(x,y);f=0}gc.stroke();
+  });
+  gc.fillStyle=cv.mute;gc.textAlign='center';
+  for(let s=Math.ceil(t0/5)*5;s<=tEnd;s+=5){const x=X(s);if(x<L+10)continue;gc.fillText(s+' s',x,h-6)}
+  gc.textAlign='left';gc.fillText('time',L,h-6);
+}
+
+function updateText(){
+  $('vNow').textContent=(emf>=0?'+':'−')+Math.abs(emf).toFixed(1)+' V';
+  const pk=hist.reduce((m,p)=>Math.max(m,Math.abs(p[2])),0);$('vPeak').textContent=pk.toFixed(1)+' V';
+  $('vSpeed').textContent=Math.abs(vel).toFixed(2)+' m/s';
+  // auto-range: step up straight away, step down only once the signal is well inside the lower range
+  const want=RANGES.find(r=>r>=pk*1.02)||RANGES[RANGES.length-1];
+  if(want>range||pk<want*.8&&want<range)setRange(want);
+}
+const RANGES=[1,2,5,10,20,50];let range=0,ang=0,angV=0;
+function setRange(r){range=r;let h='';const fmt=v=>(v<0?'−':'')+Math.abs(+v.toFixed(2));
+  for(let i=-10;i<=10;i++){const f=i/10,a=f*Math.PI/3,maj=i%5===0,r1=maj?80:86,sn=Math.sin(a),cs=Math.cos(a);
+    h+=`<line x1="${110+sn*r1}" y1="${124-cs*r1}" x2="${110+sn*92}" y2="${124-cs*92}" stroke="#1d262c" stroke-width="${maj?2:1}"/>`;
+    if(maj)h+=`<text x="${110+sn*68}" y="${128-cs*68}" font-size="12" text-anchor="middle" fill="#1d262c">${fmt(f*r)}</text>`}
+  $('scale').innerHTML=h;$('rangeT').textContent=`Range ±${r} V`}
+setRange(5);
+function moveNeedle(dt){ // spring-damped movement, like a real moving-coil meter
+  const target=Math.max(-66,Math.min(66,emf/range*60)),w=22,z=.65;
+  for(let i=0;i<4;i++){const h=dt/4;angV+=(w*w*(target-ang)-2*z*w*angV)*h;ang+=angV*h;if(Math.abs(ang)>66){ang=Math.sign(ang)*66;angV=0}}
+  $('needle').setAttribute('transform',`rotate(${ang.toFixed(2)} 110 124)`);
+}
+
+function frame(now){
+  const dt=last==null?0:Math.min(.05,(now-last)/1000);last=now;
+  if(S.run&&dt>0){t+=dt*S.speed;const e=physics(t);hist.push([t,e,emf]);while(hist.length&&hist[0][0]<t-WIN-1)hist.shift();flow+=emf*dt*S.speed*6}
+  else physics(t);
+  drawSim(elev(t));drawGraph();updateText();moveNeedle(dt);requestAnimationFrame(frame);
+}
+
+const bind=(id,key,fmt)=>{const el=$(id),o=$(id+'O');const f=()=>{S[key]=+el.value;o.textContent=fmt(+el.value)};el.addEventListener('input',f);f()};
+bind('amp','A',v=>v.toFixed(1)+' m');bind('per','T',v=>v+' s');bind('turns','N',v=>v);bind('mag','B',v=>v.toFixed(1)+'×');
+for(const k of['mixed','field','labels'])$(k).addEventListener('click',()=>{S[k]=!S[k];$(k).setAttribute('aria-pressed',S[k]);$(k).querySelector('.toggle').classList.toggle('on',S[k])});
+$('speed').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.speed=+b.dataset.s;for(const x of $('speed').querySelectorAll('button'))x.classList.toggle('on',x===b)});
+const setPlay=()=>$('play').textContent=S.run?'Pause':'Play';
+$('play').addEventListener('click',()=>{S.run=!S.run;setPlay()});setPlay();
+$('clear').addEventListener('click',()=>{hist=[];t=0});
+readVars();
+requestAnimationFrame(frame);
+
+// Quick quiz: one question at a time, type an answer, then reveal the model answer
+const QUIZ=[
+ ['Why is a potential difference induced across the coil?','The magnet moves relative to the coil, so the magnetic field through the coil changes. A changing magnetic field through a coil induces a p.d.'],
+ ['Why is the current alternating rather than direct?','The magnet moves up, then down. Each time its direction reverses, the direction of the induced p.d. reverses, so the current changes direction.'],
+ ['Give three ways to increase the induced p.d.','More turns on the coil; a stronger magnet; make the magnet move faster (bigger waves or a shorter wave period).'],
+ ['The wave period is 8 s. What is the frequency of the alternating current?','f = 1 / T = 1 / 8 = 0.125 Hz'],
+ ['When is the induced p.d. zero, and why?','At the crest and the trough of the wave. The magnet stops for an instant, so the magnetic field through the coil is not changing.'],
+ ['(Higher) Why does it get harder to move the magnet when a current flows?','The induced current makes the coil a magnet whose field opposes the motion that caused it. Work must be done against this force, and that work becomes electrical energy.']];
+let qi=0;const qAnswers=QUIZ.map(()=>''),qShown=QUIZ.map(()=>false);
+function showQ(){$('qCount').textContent=`Question ${qi+1} of ${QUIZ.length}`;$('qText').textContent=QUIZ[qi][0];$('qInput').value=qAnswers[qi];
+  $('qAns').innerHTML='<b>Answer:</b> '+QUIZ[qi][1];$('qAns').hidden=!qShown[qi];$('qReveal').textContent=qShown[qi]?'Hide answer':'Reveal answer';
+  $('qPrev').disabled=qi===0;$('qNext').disabled=qi===QUIZ.length-1}
+const openQuiz=o=>{$('quiz').hidden=!o;$('quizBtn').setAttribute('aria-expanded',o);$('quizBtn').textContent=o?'Close quiz':'Quick quiz';if(o){showQ();$('qInput').focus({preventScroll:true});$('quiz').scrollIntoView({behavior:'smooth',block:'nearest'})}};
+$('quizBtn').addEventListener('click',()=>openQuiz($('quiz').hidden));
+$('qClose').addEventListener('click',()=>{openQuiz(false);$('quizBtn').focus()});
+$('qInput').addEventListener('input',e=>qAnswers[qi]=e.target.value);
+$('qReveal').addEventListener('click',()=>{qShown[qi]=!qShown[qi];showQ()});
+$('qPrev').addEventListener('click',()=>{if(qi>0){qi--;showQ()}});
+$('qNext').addEventListener('click',()=>{if(qi<QUIZ.length-1){qi++;showQ()}});
+
+// Official Buy Me a Coffee button (same embed as the other simulations). The claude.ai preview blocks its script, so the static lookalike stays there.
+if(/(^|\.)alexmoorephysics\.com$|\.github\.io$/.test(location.hostname)){
+  const embed=`<!doctype html><html lang="en"><head><meta charset="utf-8"><style>html,body{width:250px;height:60px;margin:0;overflow:hidden;background:#FFDD00}</style></head><body><script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="awmPhysics" data-color="#FFDD00" data-emoji="" data-font="Lato" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff"><\/script></body></html>`;
+  const wrap=document.createElement('span');wrap.className='coffee-embed-frame';
+  const f=document.createElement('iframe');f.className='coffee-embed';f.title='Buy me a coffee';f.setAttribute('sandbox','allow-scripts allow-popups allow-popups-to-escape-sandbox');f.srcdoc=embed;
+  wrap.appendChild(f);document.querySelector('.bmc').replaceWith(wrap);
+}
+}
+</script>
+</body>
+</html>
