@@ -29,10 +29,12 @@
   .blurb{margin:0 0 12px;color:var(--muted)}
   .blurb b{color:var(--ink)}
   canvas{width:100%;height:auto;display:block;border-radius:10px;background:#0f1b33}
-  .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 18px;margin-top:16px}
-  .ctl label{display:flex;justify-content:space-between;gap:12px;font-size:.88rem;font-weight:600;margin-bottom:3px;white-space:nowrap}
-  .controls.cols2{grid-template-columns:repeat(2,minmax(0,1fr))}
-  @media(max-width:560px){.controls.cols2{grid-template-columns:1fr}}
+  /* all sliders in one row: each as wide as its label needs, mass sliders a little narrower; wraps only if it can't fit */
+  .controls{display:flex;flex-wrap:wrap;gap:12px 16px;margin-top:16px}
+  .controls .ctl{flex:1 1 auto;min-width:0}
+  .controls .ctl.mass{flex-grow:.7}
+  .ctl label{display:flex;justify-content:space-between;gap:10px;font-size:.84rem;font-weight:600;margin-bottom:3px;white-space:nowrap}
+
   .ctl{border-radius:10px;padding:4px 6px;margin:-4px -6px}
   .ctl.flash{animation:ctlFlash .9s ease-out}
   @keyframes ctlFlash{0%,40%{background:#ffe9a8;box-shadow:0 0 0 2px #e8b23a}20%,60%{background:#fff6d6;box-shadow:0 0 0 2px #f3d27a}100%{background:transparent;box-shadow:0 0 0 2px transparent}}
@@ -148,7 +150,7 @@
   .calc #simCard .lockNote,.calc #simCard .warn{grid-column:1/-1}
   .calc #presetsWrap,.calc #checksWrap,.calc #fsBtn{display:none}
   .calc .controls{display:flex;flex-wrap:nowrap;gap:6px}
-  .calc .ctl{flex:1 1 0;min-width:0;margin:0;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+  .calc .ctl,.calc .ctl.mass{flex:1 1 0;min-width:0;margin:0;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
   .calc .ctl label{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin:0;white-space:normal;font-size:.8rem;line-height:1.2;font-weight:600;color:var(--muted)}
   .calc .ctl label output{font-size:1.18rem;color:var(--ink);white-space:nowrap}
   .lockNote{font-size:.85rem;color:var(--muted);margin-top:10px}
@@ -668,7 +670,7 @@ const sc=(fn,k)=>(c,x,y,a)=>{c.save();c.translate(x,y);c.scale(k,k);fn(c,0,0,a);
 /* ---------------- scenarios ---------------- */
 const SCEN = {
   throw: {
-    tab:'Present toss', pMax:21000, cols:2,
+    tab:'Present toss', pMax:21000,
     blurb:'Santa and his sleigh glide along the ice. He <b>throws a present off</b>. Choose the present’s velocity after the throw. Negative means thrown backwards. What happens to the sleigh’s speed?',
     sliders:[
       {id:'M',label:'Mass of Santa + sleigh',min:200,max:800,step:10,val:400,unit:'kg',col:'#c8102e'},
@@ -720,7 +722,7 @@ const SCEN = {
     }
   },
   sledge: {
-    tab:'Sledge pile-up', pMax:1200, cols:2,
+    tab:'Sledge pile-up', pMax:1200,
     blurb:'Two elves on sledges collide on the ice and <b>stick together</b>. Try a head-on crash with negative velocity for the red elf, or a rear-end shunt.',
     sliders:[
       {id:'mA',label:'Mass of green elf + sledge',min:20,max:120,step:5,val:60,unit:'kg',col:'#1f7a4d'},
@@ -785,10 +787,9 @@ function buildControls(){
   const go=s.runLabel||'Run';$('runBtn').textContent='▶ '+go;
   $('lockNote').textContent=`Press ${go} to watch: the results stay hidden until you get the answer right.`;
   const c=$('controls');c.innerHTML='';P={};
-  c.classList.toggle('cols2',s.cols===2); // long labels: two wide columns so each label stays on one line
   s.sliders.forEach(sl=>{
     P[sl.id]=sl.val;
-    const d=document.createElement('div');d.className='ctl';
+    const d=document.createElement('div');d.className='ctl'+(/^Mass/.test(sl.label)?' mass':'');
     d.innerHTML=`<label for="s_${sl.id}">${sl.label}<output id="o_${sl.id}"></output></label>
       <input type="range" id="s_${sl.id}" min="${sl.min}" max="${sl.max}" step="${sl.step}" value="${sl.val}">`;
     c.appendChild(d);
