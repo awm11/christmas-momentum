@@ -1,0 +1,16 @@
+name: Fetch reward photos
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/photos.py
+      - name: Shrink and commit
+        run: |
+          sudo apt-get install -y -qq jpegoptim >/dev/null || true
+          jpegoptim --max=80 --strip-all img/*.jpg || true
+          git config user.name github-actions; git config user.email github-actions@users.noreply.github.com
+          git add img; git commit -qm "Reward photos from Wikimedia Commons"; git push origin HEAD:photos -f
