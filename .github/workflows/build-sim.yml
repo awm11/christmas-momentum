@@ -1,0 +1,38 @@
+name: Build a sim for screenshots
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: Sim repo name (e.g. ultrasound)
+        required: true
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: awm11/${{ inputs.repo }}
+          path: sim
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build (relative paths, so it opens from a folder)
+        working-directory: sim
+        run: |
+          mkdir -p ../out
+          if [ -f package.json ]; then
+            npm ci --no-audit --no-fund
+            npx vite build --base=./ --outDir ../out || npm run build -- --base=./ --outDir ../out
+          else
+            rsync -a --exclude .git --exclude .github ./ ../out/
+          fi
+          ls -la ../out
+      - name: Push to the build/<repo> branch
+        run: |
+          cd out
+          git init -q -b main
+          git config user.name github-actions; git config user.email github-actions@users.noreply.github.com
+          git add -A; git commit -qm "Built ${{ inputs.repo }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/build/${{ inputs.repo }}
