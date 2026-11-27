@@ -285,6 +285,7 @@
   .cTypeWrap{flex:1;min-width:0}
   .cTypeInput{width:100%;height:56px;border:2px solid #9dacbd;border-radius:12px;font-size:1.5rem;padding:0 14px;font-variant-numeric:tabular-nums}
   .cKeypad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:88%;gap:4px;margin:8px auto 0}
+  .cKey,.cUKey{touch-action:manipulation}
   .cKey{min-height:38px;border:1px solid #c9d1de;border-radius:8px;background:#fff;font-weight:700;font-size:1.05rem;cursor:pointer}
   .cKey:active{background:#e9edf4}
   .cUnitCol{flex:0 0 clamp(124px,34%,170px);display:flex;flex-direction:column;gap:6px}
@@ -334,7 +335,13 @@
   @media(max-width:520px){.cAnswer .cAnswerGrid{grid-template-columns:1fr}}
   .cNav{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-top:14px}
   .cReward{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
-  .cRewardArt svg{width:100%;max-width:400px;height:auto;margin:0 auto;display:block;border-radius:16px}
+  .cRewardArt svg{width:100%;max-width:400px;height:auto;margin:0 auto;display:none;border-radius:16px}
+  .cRewardArt.no-photo svg{display:block}.cRewardArt.no-photo .cPhoto{display:none}
+  .cPhoto{margin:0;text-align:center}
+  .cPhoto img{display:block;max-width:100%;max-height:min(46vh,440px);width:auto;height:auto;margin:0 auto;border-radius:16px;box-shadow:0 6px 22px rgba(15,27,51,.18);background:#e9eef5}
+  .cPhoto figcaption{margin-top:8px;font-size:.95rem;font-weight:600;color:var(--ink)}
+  .cPhoto figcaption a{display:block;margin-top:2px;font-size:.72rem;font-weight:500;color:var(--muted);text-decoration:none}
+  .cPhoto figcaption a:hover{text-decoration:underline}
   .cRewardTitle{margin:2px 0 6px;font-size:clamp(26px,2.6vw,36px)}
   .cRewardProgress{margin:0 0 14px;color:var(--muted)}
   .cFactBox{padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--soft)}
@@ -441,7 +448,8 @@
       </div>
 
       <div class="cReward" id="cReward" style="display:none">
-        <div class="cRewardArt" aria-hidden="true">
+        <div class="cRewardArt" id="cRewardArt">
+          <figure class="cPhoto"><img id="cPhotoImg" alt="" decoding="async"><figcaption><span id="cPhotoCap"></span> <a id="cPhotoCredit" target="_blank" rel="noopener"></a></figcaption></figure>
           <svg viewBox="0 0 200 160"><defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1530"/><stop offset="1" stop-color="#2a4676"/></linearGradient></defs>
             <rect width="200" height="160" rx="16" fill="url(#rg)"/>
             <g fill="#fff" opacity=".8"><circle cx="30" cy="22" r="1.4"/><circle cx="160" cy="30" r="1.2"/><circle cx="120" cy="16" r="1"/><circle cx="60" cy="44" r="1"/><circle cx="178" cy="62" r="1.3"/><circle cx="88" cy="28" r="1.1"/></g>
@@ -768,8 +776,8 @@ const SCEN = {
       {id:'vp',label:'Present’s velocity after throw',min:-30,max:30,step:0.5,val:-10,unit:'m/s',col:'#1f7a4d'},
     ],
     presets:[
-      {label:'Hurl it backwards',set:()=>({vp:-25})},
-      {label:'Throw it forwards',set:p=>({vp:Math.min(30,p.u+15)})},
+      {label:'Hurl it backwards',set:()=>({M:400,m:80,u:8,vp:-25})},
+      {label:'Throw it forwards',set:()=>({M:400,m:100,u:8,vp:30})},
     ],
     compute(p){
       const vs = ((p.M+p.m)*p.u - p.m*p.vp)/p.M;
@@ -795,8 +803,8 @@ const SCEN = {
       {id:'R',label:'Mass of reindeer',min:60,max:200,step:5,val:120,unit:'kg',col:'#5c3417'},
     ],
     presets:[
-      {label:'Tiny sack',set:()=>({m:5})},
-      {label:'Sack heavier than reindeer',set:()=>({m:120,R:80})},
+      {label:'Tiny sack',set:()=>({m:5,w:16,R:120})},
+      {label:'Sack heavier than reindeer',set:()=>({m:120,R:80,w:8})},
     ],
     compute(p){
       const vR = p.m*p.w/p.R;
@@ -820,9 +828,9 @@ const SCEN = {
       {id:'uB',label:'Red velocity before',min:-10,max:10,step:0.5,val:-2,unit:'m/s',col:'#c8102e'},
     ],
     presets:[
-      {label:'Equal & opposite',set:()=>({mA:50,mB:50,uA:6,uB:-6})},
-      {label:'Rear-end shunt',set:()=>({uA:8,uB:2})},
-      {label:'Heavy vs light',set:()=>({mA:120,mB:20,uA:3,uB:-9})},
+      {label:'Equal & opposite',set:()=>({mA:50,mB:50,uA:8,uB:-8})},
+      {label:'Rear-end shunt',set:()=>({mA:80,mB:30,uA:10,uB:1})},
+      {label:'Heavy vs light',set:()=>({mA:120,mB:20,uA:7,uB:-9})},
     ],
     compute(p){
       const v=(p.mA*p.uA+p.mB*p.uB)/(p.mA+p.mB);
@@ -1090,8 +1098,17 @@ function drawMomentum(){
     if(same){same.xs.push(positions[i].x);same.x=same.xs.reduce((a,b)=>a+b,0)/same.xs.length;}
     else vLabels.push({txt,v,x:positions[i].x,xs:[positions[i].x]});
   });
-  ctx.font=`600 ${12*TF}px system-ui`;ctx.textAlign='center';ctx.fillStyle='#1d2433';
-  vLabels.forEach((l,j)=>ctx.fillText(l.txt,l.x,GROUND+38+10*TF+(j%2)*13*TF));
+  // Speeds under the objects: big and bold. A second row is used only when two labels would overlap.
+  const tickY=GROUND+16+11*TF;
+  let fs=Math.min(18*TF,H-6-tickY-4);
+  const rowOf=f=>{ctx.font=`700 ${f}px system-ui`;const rows=[];
+    vLabels.forEach(l=>{const w=ctx.measureText(l.txt).width+12;l.lo=l.x-w/2;l.hi=l.x+w/2;
+      l.row=vLabels.some(o=>o!==l&&o.row===0&&o.hi>l.lo&&o.lo<l.hi)?1:0;});
+    return vLabels.some(l=>l.row===1);};
+  vLabels.forEach(l=>l.row=undefined);
+  if(rowOf(fs)){fs=Math.min(fs,(H-4-tickY-4)/2.05);vLabels.forEach(l=>l.row=undefined);rowOf(fs);}
+  ctx.font=`700 ${fs}px system-ui`;ctx.textAlign='center';ctx.fillStyle='#1d2433';
+  vLabels.forEach(l=>{const half=(l.hi-l.lo)/2;ctx.fillText(l.txt,Math.max(half+4,Math.min(W-4-half,l.x)),tickY+4+fs*(0.95+l.row*1.05));});
   // total
   const Mt=B.reduce((a,b)=>a+b.m,0), pt=Mt*view.vcom;
   ctx.font=`700 ${14*TF}px system-ui`;ctx.textAlign='left';
@@ -1103,9 +1120,6 @@ function drawMomentum(){
   // centre-of-mass star: deep gold with a dark outline so it shows on the pale ice (can be switched off)
   if(showComNow()){ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=(i%2?4:9.5)*Math.min(TF,1.4);ctx.lineTo(comx+Math.cos(a)*r,GROUND+13+Math.sin(a)*r);}ctx.closePath();
   ctx.fillStyle='#f5b400';ctx.fill();ctx.lineJoin='round';ctx.lineWidth=1.8;ctx.strokeStyle='#4a3200';ctx.stroke();}
-  // clock
-  ctx.textAlign='right';ctx.font=`600 ${13*TF}px system-ui`;ctx.fillStyle='#3d5679';
-  ctx.fillText(t<0?`t = ${fmt(t,1)} s (before)`:`t = +${fmt(t,1)} s (after)`,W-14,H-10);
   ctx.textAlign='left';ctx.fillStyle='#cfe0ff';ctx.font=`${12*TF}px system-ui`;if(showComNow()) ctx.fillText('★ = centre of mass',16,12+boxH+8+10*TF);
 }
 
@@ -1169,121 +1183,121 @@ const near=(v,x,tol)=>Math.abs(v-x)<=(tol??Math.max(Math.abs(x)*0.02,0.01));
 // FREE_NAV: move between questions without answering (for trying the set out). Set to false for students.
 const FREE_NAV=true;
 const CALC_Q=[
-  { scene:'kick', set:{R:120,m:30,w:8},
-    text:'A reindeer of mass 120 kg stands still on a frozen pond. It kicks a 30 kg sack of presents, which slides away at 8 m/s. Calculate the momentum of the sack.',
-    answer:240, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
-    help:[pmv,[M_('momentum'),T_(' = '),K_('30'),T_(' × '),V_('8')]],
+  { scene:'kick', set:{R:120,m:40,w:9},
+    text:'A reindeer of mass 120 kg stands still on a frozen pond. It kicks a 40 kg sack of presents, which slides away at 9 m/s. Calculate the momentum of the sack.',
+    answer:360, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
+    help:[pmv,[M_('momentum'),T_(' = '),K_('40'),T_(' × '),V_('9')]],
     keepHidden:{Reindeer:1},
     diagnose(v){
-      if(near(v,960)) return 'That uses the reindeer’s mass. Use the mass of the sack.';
-      if(near(v,3.75)||near(v,0.27)) return 'Multiply the mass by the velocity, don’t divide.';
-      if(near(v,38)) return 'Multiply the mass by the velocity, don’t add them.';
+      if(near(v,1080)) return 'That uses the reindeer’s mass. Use the mass of the sack.';
+      if(near(v,4.44,0.01)||near(v,0.225,0.005)) return 'Multiply the mass by the velocity, don’t divide.';
+      if(near(v,49)) return 'Multiply the mass by the velocity, don’t add them.';
       return null; } },
-  { scene:'kick', set:{R:120,m:30,w:8},
+  { scene:'kick', set:{R:120,m:40,w:9},
     text:'The reindeer moves off in the opposite direction to the sack. Use conservation of momentum to calculate the speed of the reindeer.',
-    answer:2, unit:'m/s', quantity:'speed', tolerance:0.01,
-    help:[pmv,[M_('240'),T_(' = '),K_('120'),T_(' × '),V_('velocity')]],
+    answer:3, unit:'m/s', quantity:'speed', tolerance:0.01,
+    help:[pbma,[T_('Everything starts at rest, so '),M_('momentum before = 0')]],
     diagnose(v){
-      if(near(v,240)) return 'That’s the reindeer’s momentum. Divide by the reindeer’s mass to get its speed.';
-      if(near(v,32)) return 'Check which mass you divided by: the reindeer has a mass of 120 kg.';
-      if(near(v,8)) return 'That’s the sack’s speed. The reindeer is heavier, so it moves more slowly.';
-      if(near(v,0.5)) return 'Speed = momentum ÷ mass. Check you divided the right way round.';
+      if(near(v,360)) return 'That’s the reindeer’s momentum. Divide by the reindeer’s mass to get its speed.';
+      if(near(v,9)) return 'That’s the sack’s speed. The reindeer is heavier, so it moves more slowly.';
+      if(near(v,0.33,0.01)) return 'Speed = momentum ÷ mass. Check you divided the right way round.';
       return null; } },
-  { scene:'sledge', set:{mA:60,uA:5,mB:40,uB:2},
-    text:'A green elf on a sledge (total mass 60 kg) slides at 5 m/s towards a red elf on a sledge (total mass 40 kg), which is moving at 2 m/s in the same direction. Calculate the momentum of the green elf and sledge.',
-    answer:300, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
-    help:[pmv,[M_('momentum'),T_(' = '),K_('60'),T_(' × '),V_('5')]],
+  { scene:'sledge', set:{mA:60,uA:9,mB:40,uB:1},
+    text:'A green elf on a sledge (total mass 60 kg) slides at 9 m/s towards a red elf on a sledge (total mass 40 kg), which is moving at 1 m/s in the same direction. Calculate the momentum of the green elf and sledge.',
+    answer:540, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
+    help:[pmv,[M_('momentum'),T_(' = '),K_('60'),T_(' × '),V_('9')]],
     keepHidden:{'Green elf + sledge':3,'Red elf + sledge':3},
     diagnose(v){
-      if(near(v,120)) return 'Use the green sledge’s velocity, 5 m/s.';
-      if(near(v,200)) return 'Use the green sledge’s mass, 60 kg.';
-      if(near(v,65)) return 'Multiply the mass by the velocity, don’t add them.';
-      if(near(v,12)) return 'Multiply the mass by the velocity, don’t divide.';
+      if(near(v,60)) return 'Use the green sledge’s velocity, 9 m/s.';
+      if(near(v,360)) return 'Use the green sledge’s mass, 60 kg.';
+      if(near(v,69)) return 'Multiply the mass by the velocity, don’t add them.';
+      if(near(v,6.67,0.01)||near(v,0.15,0.005)) return 'Multiply the mass by the velocity, don’t divide.';
       return null; } },
-  { scene:'sledge', set:{mA:60,uA:5,mB:40,uB:2},
+  { scene:'sledge', set:{mA:60,uA:9,mB:40,uB:1},
     text:'The green sledge catches up with the red sledge and they stick together. Calculate their speed just after the collision.',
-    answer:3.8, unit:'m/s', quantity:'speed', tolerance:0.01,
-    help:[pbma,[M_('(60 × 5) + (40 × 2)'),T_(' = '),K_('100'),T_(' × '),V_('velocity')]],
+    answer:5.8, unit:'m/s', quantity:'speed', tolerance:0.01,
+    help:[pbma,[M_('momentum before'),T_(' = '),K_('60'),T_(' × '),V_('9'),T_(' + '),K_('40'),T_(' × '),V_('1')]],
     diagnose(v){
-      if(near(v,3)) return 'Include the red sledge’s momentum too: it was already moving.';
-      if(near(v,2.2)) return 'Both sledges move the same way, so add their momenta.';
-      if(near(v,6.33,0.01)||near(v,9.5)) return 'After they stick, divide by the total mass of both sledges (100 kg).';
-      if(near(v,380)) return 'That’s the total momentum. Divide by the total mass to get the speed.';
+      if(near(v,5.4)) return 'Include the red sledge’s momentum too: it was already moving.';
+      if(near(v,5)) return 'Both sledges move the same way, so add their momenta.';
+      if(near(v,9.67,0.01)||near(v,14.5)) return 'After they stick, divide by the total mass of both sledges (100 kg).';
+      if(near(v,580)) return 'That’s the total momentum. Divide by the total mass to get the speed.';
       return null; } },
-  { scene:'throw', set:{M:400,m:40,u:5,vp:-10},
-    text:'Santa and his sleigh (total mass 400 kg) carry a 40 kg present. Together they glide at 5 m/s. Calculate their total momentum.',
-    answer:2200, unit:'kgm/s', quantity:'momentum', tolerance:1,
-    help:[pmv,[M_('momentum'),T_(' = '),K_('(400 + 40)'),T_(' × '),V_('5')]],
+  { scene:'throw', set:{M:400,m:80,u:5,vp:-15},
+    text:'Santa and his sleigh (total mass 400 kg) carry an 80 kg present. Together they glide at 5 m/s. Calculate their total momentum.',
+    answer:2400, unit:'kgm/s', quantity:'momentum', tolerance:1,
+    help:[pmv,[T_('The present moves too, so '),K_('mass = 400 + 80')]],
     keepHidden:{'Santa + sleigh':5},
     diagnose(v){
       if(near(v,2000)) return 'The present moves with the sleigh, so include its mass too.';
-      if(near(v,200)) return 'Include the mass of Santa and the sleigh too.';
+      if(near(v,400)) return 'Include the mass of Santa and the sleigh too.';
+      if(near(v,485)) return 'Multiply the mass by the velocity, don’t add them.';
       return null; } },
-  { scene:'throw', set:{M:400,m:40,u:5,vp:-10},
-    text:'Santa throws the present backwards, so that it moves at 10 m/s in the opposite direction. Calculate the speed of Santa and his sleigh just afterwards.',
-    answer:6.5, unit:'m/s', quantity:'speed', tolerance:0.01,
-    help:[pbma,[M_('2200'),T_(' = '),K_('400'),T_(' × '),V_('velocity'),T_(' + '),K_('40'),T_(' × '),V_('(−10)')]],
+  { scene:'throw', set:{M:400,m:80,u:5,vp:-15},
+    text:'Santa throws the present backwards, so that it moves at 15 m/s in the opposite direction. Calculate the speed of Santa and his sleigh just afterwards.',
+    answer:9, unit:'m/s', quantity:'speed', tolerance:0.01,
+    help:[pbma,[M_('present’s momentum after'),T_(' = '),K_('80'),T_(' × '),V_('(−15)')]],
     diagnose(v){
-      if(near(v,4.5)) return 'The present moves backwards, so its momentum is negative. Subtracting a negative adds.';
-      if(near(v,5.5)) return 'Remember the present’s momentum after the throw.';
-      if(near(v,5.91,0.01)) return 'After the throw, Santa and the sleigh have a mass of 400 kg: the present has gone.';
+      if(near(v,3)) return 'The present moves backwards, so its momentum is negative. Subtracting a negative adds.';
+      if(near(v,6)) return 'Remember the present’s momentum after the throw.';
+      if(near(v,7.5)) return 'After the throw, Santa and the sleigh have a mass of 400 kg: the present has gone.';
       if(near(v,5)) return 'Throwing the present backwards pushes the sleigh forwards, so it speeds up.';
       return null; } },
-  { scene:'kick', set:{R:120,m:20,w:9}, hideSliders:{R:7}, keepHidden:{Reindeer:7},
-    text:'A different reindeer stands still on the ice. It kicks a 20 kg sack, which slides away at 9 m/s. Calculate the momentum of the sack.',
-    answer:180, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
-    help:[pmv,[M_('momentum'),T_(' = '),K_('20'),T_(' × '),V_('9')]],
+  { scene:'kick', set:{R:120,m:40,w:12}, hideSliders:{R:7}, keepHidden:{Reindeer:7},
+    text:'A different reindeer stands still on the ice. It kicks a 40 kg sack, which slides away at 12 m/s. Calculate the momentum of the sack.',
+    answer:480, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
+    help:[pmv,[M_('momentum'),T_(' = '),K_('40'),T_(' × '),V_('12')]],
     diagnose(v){
-      if(near(v,29)) return 'Multiply the mass by the velocity, don’t add them.';
-      if(near(v,2.22,0.01)||near(v,0.45,0.01)) return 'Multiply the mass by the velocity, don’t divide.';
+      if(near(v,52)) return 'Multiply the mass by the velocity, don’t add them.';
+      if(near(v,3.33,0.01)||near(v,0.3,0.005)) return 'Multiply the mass by the velocity, don’t divide.';
       return null; } },
-  { scene:'kick', set:{R:120,m:20,w:9}, hideSliders:{R:7},
-    text:'The reindeer recoils at 1.5 m/s in the opposite direction to the sack. Use conservation of momentum to calculate the mass of the reindeer.',
+  { scene:'kick', set:{R:120,m:40,w:12}, hideSliders:{R:7},
+    text:'The reindeer recoils at 4 m/s in the opposite direction to the sack. Use conservation of momentum to calculate the mass of the reindeer.',
     answer:120, unit:'kg', quantity:'mass', tolerance:0.5,
-    help:[pbma,[M_('180'),T_(' = '),K_('mass'),T_(' × '),V_('1.5')]],
+    help:[pbma,[T_('Everything starts at rest, so '),M_('momentum before = 0')]],
     diagnose(v){
-      if(near(v,270)) return 'Mass = momentum ÷ velocity: divide, don’t multiply.';
-      if(near(v,180)) return 'That’s the reindeer’s momentum. Divide by its velocity to get its mass.';
-      if(near(v,13.33,0.01)||near(v,13.3,0.05)) return 'Divide the momentum (180 kg m/s) by the reindeer’s speed (1.5 m/s).';
-      if(near(v,20)) return 'That’s the sack’s mass. The reindeer recoils more slowly, so it must be heavier.';
+      if(near(v,1920)) return 'Mass = momentum ÷ velocity: divide, don’t multiply.';
+      if(near(v,480)) return 'That’s the reindeer’s momentum. Divide by its velocity to get its mass.';
+      if(near(v,0.0083,0.0005)) return 'Divide the momentum (480 kg m/s) by the reindeer’s speed (4 m/s).';
+      if(near(v,40)) return 'That’s the sack’s mass. The reindeer recoils more slowly, so it must be heavier.';
       return null; } },
-  { scene:'sledge', set:{mA:60,uA:6,mB:40,uB:-4}, keepHidden:{'Green elf + sledge':9,'Red elf + sledge':9},
-    text:'A green elf on a sledge (total mass 60 kg) moves right at 6 m/s towards a red elf on a sledge (total mass 40 kg) moving left at 4 m/s. Taking right as positive, calculate the total momentum before they collide.',
-    answer:200, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
-    help:[pmv,[M_('total'),T_(' = '),K_('60'),T_(' × '),V_('6'),T_(' + '),K_('40'),T_(' × '),V_('(−4)')]],
+  { scene:'sledge', set:{mA:60,uA:9,mB:40,uB:-6}, keepHidden:{'Green elf + sledge':9,'Red elf + sledge':9},
+    text:'A green elf on a sledge (total mass 60 kg) moves right at 9 m/s towards a red elf on a sledge (total mass 40 kg) moving left at 6 m/s. Taking right as positive, calculate the total momentum before they collide.',
+    answer:300, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
+    help:[pmv,[T_('Left is negative: '),V_('red sledge’s velocity = −6 m/s')]],
     diagnose(v){
-      if(near(v,520)) return 'The red sledge moves left, so its momentum is negative: 40 × (−4) = −160 kg m/s.';
-      if(near(v,360)) return 'Include the red sledge’s momentum too.';
-      if(near(v,160)) return 'That’s only the red sledge’s momentum (and it’s negative). Add the green sledge’s.';
+      if(near(v,780)) return 'The red sledge moves left, so its momentum is negative: 40 × (−6) = −240 kg m/s.';
+      if(near(v,540)) return 'Include the red sledge’s momentum too.';
+      if(near(v,240)) return 'That’s only the red sledge’s momentum (and it’s negative). Add the green sledge’s.';
       return null; } },
-  { scene:'sledge', set:{mA:60,uA:6,mB:40,uB:-4},
+  { scene:'sledge', set:{mA:60,uA:9,mB:40,uB:-6},
     text:'The sledges collide and stick together. Calculate their speed just after the collision.',
-    answer:2, unit:'m/s', quantity:'speed', tolerance:0.01,
-    help:[pbma,[M_('200'),T_(' = '),K_('(60 + 40)'),T_(' × '),V_('velocity')]],
+    answer:3, unit:'m/s', quantity:'speed', tolerance:0.01,
+    help:[pbma,[T_('After they stick together, '),K_('mass = 60 + 40')]],
     diagnose(v){
-      if(near(v,5.2)) return 'The red sledge moves left, so its momentum is negative.';
-      if(near(v,200)) return 'That’s the total momentum. Divide by the total mass to get the speed.';
-      if(near(v,3.33,0.01)||near(v,5)) return 'After they stick, divide by the total mass of both sledges (100 kg).';
+      if(near(v,7.8)) return 'The red sledge moves left, so its momentum is negative.';
+      if(near(v,300)) return 'That’s the total momentum. Divide by the total mass to get the speed.';
+      if(near(v,5)||near(v,7.5)) return 'After they stick, divide by the total mass of both sledges (100 kg).';
       return null; } },
-  { scene:'throw', set:{M:300,m:20,u:4,vp:-11}, keepHidden:{Present:11},
-    text:'Santa and his sleigh (mass 300 kg) carry a 20 kg present, gliding forwards at 4 m/s. Santa throws the present backwards, and the sleigh speeds up to 5 m/s. Calculate the momentum of Santa and the sleigh just after the throw.',
-    answer:1500, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
-    help:[pmv,[M_('momentum'),T_(' = '),K_('300'),T_(' × '),V_('5')]],
+  { scene:'throw', set:{M:300,m:50,u:4,vp:-8}, keepHidden:{Present:11},
+    text:'Santa and his sleigh (mass 300 kg) carry a 50 kg present, gliding forwards at 4 m/s. Santa throws the present backwards, and the sleigh speeds up to 6 m/s. Calculate the momentum of Santa and the sleigh just after the throw.',
+    answer:1800, unit:'kgm/s', quantity:'momentum', tolerance:0.5,
+    help:[pmv,[M_('momentum'),T_(' = '),K_('300'),T_(' × '),V_('6')]],
     diagnose(v){
-      if(near(v,1600)) return 'After the throw the present has gone, so use 300 kg, not 320 kg.';
-      if(near(v,1280)) return 'That’s the total momentum before the throw. Use the sleigh’s new speed, 5 m/s.';
-      if(near(v,1200)) return 'Use the sleigh’s speed after the throw, 5 m/s.';
-      if(near(v,305)) return 'Multiply the mass by the velocity, don’t add them.';
+      if(near(v,2100)) return 'After the throw the present has gone, so use 300 kg, not 350 kg.';
+      if(near(v,1400)) return 'That’s the total momentum before the throw. Use the sleigh’s new speed, 6 m/s.';
+      if(near(v,1200)) return 'Use the sleigh’s speed after the throw, 6 m/s.';
+      if(near(v,306)) return 'Multiply the mass by the velocity, don’t add them.';
       return null; } },
-  { scene:'throw', set:{M:300,m:20,u:4,vp:-11},
+  { scene:'throw', set:{M:300,m:50,u:4,vp:-8},
     text:'Use conservation of momentum to calculate the speed of the present just after Santa throws it backwards.',
-    answer:11, unit:'m/s', quantity:'speed', tolerance:0.01,
-    help:[pbma,[M_('(300 + 20) × 4'),T_(' = '),M_('1500'),T_(' + '),K_('20'),T_(' × '),V_('velocity')]],
+    answer:8, unit:'m/s', quantity:'speed', tolerance:0.01,
+    help:[pbma,[M_('momentum before'),T_(' = '),K_('(300 + 50)'),T_(' × '),V_('4')]],
     diagnose(v){
-      if(near(v,220)) return 'That’s the size of the present’s momentum. Divide by its mass to get its speed.';
-      if(near(v,16)) return 'Before the throw the present was moving with the sleigh: the total mass was 320 kg, so the total momentum was 1280 kg m/s.';
-      if(near(v,75)) return 'Momentum before = momentum after: the present’s momentum is 1280 − 1500 = −220 kg m/s.';
-      if(near(v,139)) return 'The present moves backwards, so its momentum is negative: 1280 − 1500 = −220 kg m/s.';
+      if(near(v,400)) return 'That’s the size of the present’s momentum. Divide by its mass to get its speed.';
+      if(near(v,12)) return 'Before the throw the present was moving with the sleigh: the total mass was 350 kg, so the total momentum was 1400 kg m/s.';
+      if(near(v,36)) return 'Momentum before = momentum after: the present’s momentum is 1400 − 1800 = −400 kg m/s.';
+      if(near(v,64)) return 'The present moves backwards, so its momentum is negative: 1400 − 1800 = −400 kg m/s.';
       return null; } },
 ];
 CALC_Q.forEach(q=>{q.text=nb(q.text);}); // units never split from their values
@@ -1310,15 +1324,15 @@ const REWARD_FACTS=[
 function shuffle(items){const c=[...items];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}return c;}
 
 /* ---------------- session (saved in the browser, like batQuizStorage) ---------------- */
-const STORE_KEY='awm-xmas-momentum-calc-v2'; // v2: 12 questions
+const STORE_KEY='awm-xmas-momentum-calc-v3'; // v3: new numbers in the 12 questions
 const EXPIRY_MS=60*60*1000; // 1 hour since last change, so the next person on a shared computer starts fresh
 const arr=v=>Array.from({length:N_Q},()=>typeof v==='function'?v():v);
 function freshSession(){
   return {idx:0,answers:arr(''),units:arr(''),checked:arr(false),correct:arr(false),solved:arr(false),attempted:arr(false),
-    wrongAttempts:arr(0),helpShown:arr(false),recognised:arr(''),lastWrong:arr(''),drawings:arr(()=>[]),ink:arr(()=>[]),
+    wrongAttempts:arr(0),helpShown:arr(false),recognised:arr(''),lastWrong:arr(''),lastChecked:arr(null),drawings:arr(()=>[]),ink:arr(()=>[]),
     swapped:false,mode:'write',seenRewards:[],reward:null,facts:shuffle(REWARD_FACTS).slice(0,N_Q),workingSize:null};
 }
-const SIMPLE_ARRAYS=['answers','units','checked','correct','solved','attempted','wrongAttempts','helpShown','recognised','lastWrong'];
+const SIMPLE_ARRAYS=['answers','units','checked','correct','solved','attempted','wrongAttempts','helpShown','recognised','lastWrong','lastChecked'];
 const round=(v,p)=>{const f=10**p;return Math.round(v*f)/f;};
 function saveSessionNow(){
   try{
@@ -1486,7 +1500,15 @@ function showWorkingHelp(){
 
 /* ---------------- answer entry (typed) ---------------- */
 // Any change to the answer clears the last check, as in the bat quiz.
-function answerChanged(){S.checked[S.idx]=false;S.correct[S.idx]=false;setFeedback('','');renderNav();scheduleSave();}
+const answerKey=i=>String(S.answers[i]||'').trim().replace(/,/g,'.')+'|'+normalizeUnit(S.units[i]);
+// Editing the answer clears the last check, unless it is put back to exactly what was checked:
+// then the check (and its feedback) comes back, so nothing shows as "changed" when it isn't.
+function answerChanged(){
+  const i=S.idx,lc=S.lastChecked[i];
+  if(lc&&lc.k===answerKey(i)){S.checked[i]=true;S.correct[i]=lc.c;showQuestionFeedback(i);}
+  else{S.checked[i]=false;S.correct[i]=false;setFeedback('','');}
+  renderNav();renderDots();scheduleSave();
+}
 function setAnswerValue(v){S.answers[S.idx]=v;answerChanged();}
 function setUnitValue(u){S.units[S.idx]=u;renderUnits();answerChanged();}
 function unitPress(key){
@@ -1525,7 +1547,7 @@ async function checkAnswer(ev){
   if(factor===undefined){setFeedback('wrong',describeWrongUnit(u,q));return;}
   const v=entered*factor/canonical; // the answer converted into the question's unit
   const isCorrect=Math.abs(v-q.answer)<=q.tolerance;
-  S.checked[i]=true;S.attempted[i]=true;S.correct[i]=isCorrect;
+  S.checked[i]=true;S.attempted[i]=true;S.correct[i]=isCorrect;S.lastChecked[i]={k:answerKey(i),c:isCorrect};
   // Right number, wrong unit (e.g. 240 g m/s for 240 kg m/s).
   const wrongText=isCorrect?'':(Math.abs(entered-q.answer)<=q.tolerance?'Check the unit.':(q.diagnose(v)||WRONG_NUMBER_FEEDBACK));
   S.lastWrong[i]=wrongText;
@@ -1622,12 +1644,20 @@ function handleNext(){
   if(!S.seenRewards.includes(done)){S.seenRewards.push(done);S.reward=S.idx;scheduleSave();renderQuestion(false);return;}
   if(S.idx<N_Q-1) moveToQuestion(S.idx+1);
 }
+/* Reward photos: free-licence pictures from Wikimedia Commons (credits shown under each one). */
+const REWARD_PHOTOS=[{"src": "img/reindeer-01.jpg","cap": "Who, me? A young reindeer says hello.","by": "Guérin Nicolas","lic": "CC BY-SA 3.0","url": "https://commons.wikimedia.org/wiki/File:Rangifer_tarandus_(Wroclaw_zoo)_-_young_-_face.JPG"},{"src": "img/reindeer-02.jpg","cap": "Out for a stroll in Lapland, Sweden.","by": "Alexandre Buisse (Nattfodd)","lic": "CC BY-SA 3.0","url": "https://commons.wikimedia.org/wiki/File:20070818-0001-strolling_reindeer.jpg"},{"src": "img/reindeer-03.jpg","cap": "Rush hour on a road in northern Finland.","by": "Eljas Waltari","lic": "CC BY 3.0","url": "https://commons.wikimedia.org/wiki/File:Connecting_road_9401_20100912_01.jpg"},{"src": "img/reindeer-04.jpg","cap": "A herd at full gallop in southern Iceland.","by": "Giles Laurent","lic": "CC BY-SA 4.0","url": "https://commons.wikimedia.org/wiki/File:193_Herd_of_Reindeers_running_in_Southern_Iceland_Photo_by_Giles_Laurent.jpg"},{"src": "img/reindeer-05.jpg","cap": "A young reindeer relaxing on the rocks near Hammerfest, Norway.","by": "Ximonic (Simo Räsänen)","lic": "CC BY-SA 4.0","url": "https://commons.wikimedia.org/wiki/File:Young_reindeer_on_Salen,_Hammerfest,_Troms_og_Finnmark,_Norway,_2022_August.jpg"},{"src": "img/reindeer-06.jpg","cap": "The real thing: a reindeer team pulling a sleigh in Russia.","by": "Elen Schurova","lic": "CC BY-SA 2.0","url": "https://commons.wikimedia.org/wiki/File:Reindeer_pulling_sleigh,_Russia.jpg"},{"src": "img/reindeer-07.jpg","cap": "Velvet-covered antlers on a very tame reindeer at Saltfjellet, Norway.","by": "Frankemann","lic": "CC BY-SA 4.0","url": "https://commons.wikimedia.org/wiki/File:Extraordinary_tame_reindeer_at_Saltfjellet.jpg"},{"src": "img/reindeer-08.jpg","cap": "Zoom! Dashing across a snowfield.","by": "Vojife","lic": "CC BY 3.0","url": "https://commons.wikimedia.org/wiki/File:A_frightened_reindeer_on_snow_-_panoramio.jpg"},{"src": "img/reindeer-09.jpg","cap": "Striking a pose at Torkilstöten, Sweden.","by": "Arild Vågen","lic": "CC BY-SA 3.0","url": "https://commons.wikimedia.org/wiki/File:Reindeer_Torkilst%C3%B6ten_2012.jpg"},{"src": "img/reindeer-10.jpg","cap": "A rare white reindeer.","by": "Musicaline","lic": "CC BY-SA 4.0","url": "https://commons.wikimedia.org/wiki/File:Jeune_renne_blanc_DSCF2992.jpg"},{"src": "img/reindeer-11.jpg","cap": "A mother and her new calf at Ähtäri, Finland.","by": "kallerna","lic": "CC BY-SA 3.0","url": "https://commons.wikimedia.org/wiki/File:Poron_vasa_%C3%84ht%C3%A4ri_3.jpg"},{"src": "img/reindeer-12.jpg","cap": "Magnificent antlers against the snow.","by": "Eric Kilby","lic": "CC BY-SA 2.0","url": "https://commons.wikimedia.org/wiki/File:Reindeer_Antlers_Contrasted_Against_the_Snow_(24165335876).jpg"}];
 function renderReward(){
   const k=S.reward,score=S.correct.filter(Boolean).length,done=score,final=k===N_Q-1;
   $('cRewardEyebrow').textContent=final?'Challenge complete':`${done} question${done===1?'':'s'} complete`;
   $('cRewardTitle').textContent=final?'Well done!':'Nice work!';
   $('cRewardProgress').textContent=final?`You completed all ${N_Q} questions. Score: ${score} / ${N_Q}`:`You have completed ${done} of ${N_Q} questions.`;
   $('cFact').textContent=S.facts[k]||REWARD_FACTS[k%REWARD_FACTS.length];
+  const ph=REWARD_PHOTOS[k%REWARD_PHOTOS.length],img=$('cPhotoImg');
+  $('cRewardArt').classList.remove('no-photo');
+  img.onerror=()=>$('cRewardArt').classList.add('no-photo');
+  img.alt=ph.cap;img.src=ph.src;
+  $('cPhotoCap').textContent=ph.cap;
+  const a=$('cPhotoCredit');a.textContent=`Photo: ${ph.by}, ${ph.lic}, via Wikimedia Commons`;a.href=ph.url;
   $('cContinue').style.display=final?'none':'';
   $('cReview').style.display=final?'':'none';
   renderNav();
@@ -1775,7 +1805,7 @@ function initCalc(){
   $('cHelp').onclick=showWorkingHelp;
   $('cKeypad').innerHTML=KEYPAD_KEYS.map(k=>`<button type="button" class="cKey${k==='backspace'?' is-action':''}" data-k="${k}" aria-label="${k==='backspace'?'Backspace':k==='.'?'Decimal point':k}">${k==='backspace'?'⌫':k}</button>`).join('');
   $('cKeypad').onclick=e=>{const b=e.target.closest('[data-k]');if(b) keypadPress(b.dataset.k);};
-  $('cTypeInput').addEventListener('input',e=>setAnswerValue(e.target.value));
+  $('cTypeInput').addEventListener('input',e=>{if(e.target.value!==String(S.answers[S.idx]||'')) setAnswerValue(e.target.value);});
   $('cUnitKeys').innerHTML=UNIT_KEYS.map(k=>`<button type="button" class="cUKey${k==='backspace'?' is-action':''}" data-u="${k}" aria-label="${k==='backspace'?'Delete last unit letter':k==='/'?'per (slash)':k}">${k==='backspace'?'⌫':k}</button>`).join('');
   $('cUnitKeys').onclick=e=>{const b=e.target.closest('[data-u]');if(b) unitPress(b.dataset.u);};
   $('cClear').onclick=()=>{S.units[S.idx]='';setAnswerValue('');renderUnits();renderTyped();};
