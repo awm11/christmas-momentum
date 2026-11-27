@@ -153,6 +153,10 @@
   .calc .ctl,.calc .ctl.mass{flex:1 1 0;min-width:0;margin:0;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
   .calc .ctl label{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin:0;white-space:normal;font-size:.8rem;line-height:1.2;font-weight:600;color:var(--muted)}
   .calc .ctl label output{font-size:1.18rem;color:var(--ink);white-space:nowrap}
+  /* numbers sit on the bottom of each box, so they line up even when a label wraps onto two lines */
+  .calc .ctl{display:flex}
+  .calc .ctl label{flex:1;height:100%}
+  .calc .ctl label output{margin-top:auto}
   .lockNote{font-size:.85rem;color:var(--muted);margin-top:10px}
   .cSwap{position:absolute;top:30px;z-index:10;width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;
     transform:translate(-50%,-50%);border:1px solid #c9d1de;border-radius:999px;background:#fff;box-shadow:0 4px 12px rgba(20,30,60,.18),0 0 0 3px var(--soft);cursor:pointer}
